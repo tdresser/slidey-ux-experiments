@@ -1,5 +1,7 @@
 import './style.css'
 import { FrictionPhysicsModel } from './FrictionPhysicsModel.ts'
+import { SpringPhysicsModel } from './SpringPhysicsModel.ts';
+import { PhysicsModel } from './PhysicsModel.ts';
 import { fail } from './util.ts';
 
 let animationLock: Animation;
@@ -22,6 +24,7 @@ function handlePointerDown(e: PointerEvent) {
     return;
   }
   pointingDown = true;
+  physicsModel = initPhysics();
 
   // @ts-ignore
   transition = document.startViewTransition();
@@ -65,19 +68,23 @@ function handlePointerUp(_: PointerEvent) {
   });
 }
 
-let physicsModel: FrictionPhysicsModel = snapshotValues();
+let physicsModel: PhysicsModel = initPhysics();
 finishAnimation()
 
 function advance(finished: (d?: unknown) => void) {
-  const advanceResult = physicsModel.advance(finished);
+  const advanceResult = physicsModel.advance();
+  console.log(advanceResult);
   document.documentElement.style.setProperty("--offset", `${advanceResult.offset}px`);
-  if (!advanceResult.done) {
+  if (advanceResult.done) {
+    finished();
+  } else {
     requestAnimationFrame(() => { advance(finished) });
   }
 }
 
 function startAnimation() {
   animating = true;
+  physicsModel.startAnimating(performance.now());
   return new Promise(resolve => {
     advance(resolve);
   });
@@ -85,7 +92,6 @@ function startAnimation() {
 
 function finishAnimation() {
   // Reset stuff.
-  physicsModel = snapshotValues();
   animating = false;
   document.documentElement.style.setProperty("--offset", '0px');
   document.documentElement.style.setProperty("--vertical-offset", '0px');
@@ -96,17 +102,17 @@ function finishAnimation() {
   scrim.style.display = "none";
 }
 
-function snapshotValues(): FrictionPhysicsModel {
+function initPhysics(): PhysicsModel {
   for (const option of modeRadioButtonInputs) {
     if (option.checked) {
       mode = parseInt(option.value);
     }
   }
 
-  return new FrictionPhysicsModel({
-    networkStart: performance.now(),
+  return new SpringPhysicsModel({
+    dragStartTime: performance.now(),
     networkDelay: parseFloat(networkDelayInput.value),
-    maxOffset: document.documentElement.getBoundingClientRect().width,
+    targetOffset: document.documentElement.getBoundingClientRect().width,
   });
 }
 
@@ -116,7 +122,7 @@ function updateDisplays() {
   physicsModel.updateDisplays();
 
   // This is a bit overkill, but with mode switching, these were sometimes getting out of sync.
-  physicsModel = snapshotValues();
+  physicsModel = initPhysics();
   finishAnimation();
 }
 

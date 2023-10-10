@@ -39,14 +39,12 @@ export class FrictionPhysicsModel extends PhysicsModel {
     this.maxVelocityDisplay.innerHTML = this.maxVelocityInput.value;
   }
 
-  advance(finished: (d?: unknown) => void): AdvanceResult {
+  advance(): AdvanceResult {
     let target = this.maxOffset;
     this.offset += this.velocity;
 
-    // Is the page committed?
-    let committed = (performance.now() - this.networkStart) >= this.networkDelay;
     let done = false;
-    if (committed) {
+    if (this.committed()) {
       // We should be speeding up, but at least start with min velocity.
       if (this.velocity < this.minVelocity) {
         this.velocity = this.minVelocity;
@@ -54,7 +52,6 @@ export class FrictionPhysicsModel extends PhysicsModel {
         // We've reached the end!
         this.offset = target;
         done = true;
-        finished();
       } else if (this.velocity < this.maxVelocity) {
         // Keep speeding up by inverse of friction up until max velocity.
         this.velocity = this.velocity / (1 - this.frictionCoeff);

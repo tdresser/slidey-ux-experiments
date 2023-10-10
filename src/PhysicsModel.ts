@@ -5,23 +5,35 @@ export interface AdvanceResult {
 }
 
 export interface PhysicsModelInit {
-    networkStart: number,
+    dragStartTime: number,
     networkDelay: number,
-    maxOffset: number,
-  }
+    targetOffset: number,
+}
 
 export abstract class PhysicsModel {
-    networkStart:number;
-    networkDelay:number;
-    maxOffset:number;
+    dragStartTime: number;
+    animationStartTime: number = 0;
+    animationStartOffset: number = 0;
+    networkDelay: number;
+    maxOffset: number;
     offset: number = 0;
 
-    constructor(init:PhysicsModelInit) {
-        this.networkStart = init.networkStart;
+    constructor(init: PhysicsModelInit) {
+        this.dragStartTime = init.dragStartTime;
         this.networkDelay = init.networkDelay;
-        this.maxOffset = init.maxOffset;
+        this.maxOffset = init.targetOffset;
     }
 
-    abstract advance(finished: (d?: unknown) => void): AdvanceResult;
+    startAnimating(time: number) {
+        this.animationStartTime = time;
+        this.animationStartOffset = this.offset;
+    }
+
+    abstract advance(): AdvanceResult;
     abstract pointerMove(delta: number): number;
+    abstract updateDisplays(): void;
+
+    committed() {
+        return (performance.now() - this.dragStartTime) >= this.networkDelay;
+    }
 };
