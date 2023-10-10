@@ -93,57 +93,67 @@ function handlePointerUp(_: PointerEvent) {
 }
 
 let networkDelay: number;
-let stopRatio: number;
-let frictionRatio: number;
-let frictionCoeff: number;
-let minVelocity: number;
-let maxVelocity: number;
 
 interface AdvanceResult {
   done: boolean,
-  velocity: number,
 }
 
 interface PhysicsModel {
-  advance(velocity: number, finished: (d?: unknown) => void): AdvanceResult;
+  advance(finished: (d?: unknown) => void): AdvanceResult;
 };
 
 class FrictionPhysicsModel implements PhysicsModel {
-  advance(velocity: number, finished: (d?: unknown) => void): AdvanceResult {
+  stopRatio: number;
+  frictionRatio: number;
+  frictionCoeff: number;
+  minVelocity: number;
+  maxVelocity: number;
+  velocity: number;
+
+  constructor() {
+    this.stopRatio = parseFloat(stopRatioInput.value);
+    this.frictionRatio = parseFloat(frictionRatioInput.value);
+    this.frictionCoeff = parseFloat(frictionCoeffInput.value);
+    this.minVelocity = parseFloat(minVelocityInput.value);
+    this.maxVelocity = parseFloat(maxVelocityInput.value);
+    this.velocity = this.maxVelocity;
+  }
+
+  advance(finished: (d?: unknown) => void): AdvanceResult {
     console.log("TICK");
     let target = maxOffset;
-    offset += velocity;
+    offset += this.velocity;
 
     // Is the page committed?
     let committed = (performance.now() - networkStart) >= networkDelay;
     let done = false;
     if (committed) {
       // We should be speeding up, but at least start with min velocity.
-      if (velocity < minVelocity) {
-        velocity = minVelocity;
+      if (this.velocity < this.minVelocity) {
+        this.velocity = this.minVelocity;
       } else if (offset >= target) {
         // We've reached the end!
         offset = target;
         done = true;
         console.log("Reached the end");
         finished();
-      } else if (velocity < maxVelocity) {
+      } else if (this.velocity < this.maxVelocity) {
         // Keep speeding up by inverse of friction up until max velocity.
-        velocity = velocity / (1 - frictionCoeff);
-        if (velocity >= maxVelocity) {
-          velocity = maxVelocity;
+        this.velocity = this.velocity / (1 - this.frictionCoeff);
+        if (this.velocity >= this.maxVelocity) {
+          this.velocity = this.maxVelocity;
         }
       }
     } else {
       // If we're at the stop point, drop the velocity to 0.
-      if (offset >= target * stopRatio) {
-        offset = target * stopRatio;
-        velocity = 0;
-      } else if (offset > target * frictionRatio) {
+      if (offset >= target * this.stopRatio) {
+        offset = target * this.stopRatio;
+        this.velocity = 0;
+      } else if (offset > target * this.frictionRatio) {
         // We've entered the friction zone, so start slowing down until min velocity.
-        velocity = velocity * (1 - frictionCoeff);
-        if (velocity < minVelocity) {
-          velocity = minVelocity;
+        this.velocity = this.velocity * (1 - this.frictionCoeff);
+        if (this.velocity < this.minVelocity) {
+          this.velocity = this.minVelocity;
         }
       }
     }
@@ -152,28 +162,25 @@ class FrictionPhysicsModel implements PhysicsModel {
 
     return {
       done,
-      velocity,
     }
   }
 }
 
 let physicsModel = new FrictionPhysicsModel();
 
-function advance(velocity:number, finished: (d?: unknown) => void) {
-  const advanceResult = physicsModel.advance(velocity, finished);
+function advance(finished: (d?: unknown) => void) {
+  const advanceResult = physicsModel.advance(finished);
   console.log(advanceResult);
   if (!advanceResult.done) {
     console.log("REQUEST;")
-    requestAnimationFrame(() => { advance(advanceResult.velocity, finished) });
+    requestAnimationFrame(() => { advance(finished) });
   }
 }
 
 function startAnimation() {
   animating = true;
   return new Promise(resolve => {
-    requestAnimationFrame(() => {
-      advance(maxVelocity, resolve);
-    });
+    advance(resolve);
   });
 }
 
@@ -193,22 +200,12 @@ function finishAnimation() {
 function snapshotValues() {
   networkStart = performance.now()
   networkDelay = parseFloat(networkDelayInput.value);
-  stopRatio = parseFloat(stopRatioInput.value);
-  if (mode != MODE_80_PERCENT) {
-    stopRatio = 1;
-  }
-  frictionRatio = parseFloat(frictionRatioInput.value);
-  frictionCoeff = parseFloat(frictionCoeffInput.value);
-  minVelocity = parseFloat(minVelocityInput.value);
-  maxVelocity = parseFloat(maxVelocityInput.value);
 
   for (const option of modeRadioButtonInputs) {
     if (option.checked) {
       mode = parseInt(option.value);
     }
   }
-
-  console.log(networkStart, networkDelay, stopRatio, frictionRatio, frictionCoeff, minVelocity, maxVelocity, mode);
 }
 
 function updateDisplays() {
