@@ -14,19 +14,8 @@ function fail(): never {
 
 const scrim = document.getElementById("scrim") ?? fail();
 const networkDelayInput = document.getElementById("networkDelayInput") as HTMLInputElement ?? fail();
-const stopRatioInput = document.getElementById("stopRatioInput") as HTMLInputElement ?? fail();
-const frictionRatioInput = document.getElementById("frictionRatioInput") as HTMLInputElement ?? fail();
-const frictionCoeffInput = document.getElementById("frictionCoeffInput") as HTMLInputElement ?? fail();
-const minVelocityInput = document.getElementById("minVelocityInput") as HTMLInputElement ?? fail();
-const maxVelocityInput = document.getElementById("maxVelocityInput") as HTMLInputElement ?? fail();
 const modeRadioButtonInputs = Array.from(document.querySelectorAll('input[name="mode"]')).map(x => x as HTMLInputElement);
-
 const networkDelayDisplay = document.getElementById("networkDelayDisplay") as HTMLInputElement ?? fail();
-const stopRatioDisplay = document.getElementById("stopRatioDisplay") as HTMLInputElement ?? fail();
-const frictionRatioDisplay = document.getElementById("frictionRatioDisplay") as HTMLInputElement ?? fail();
-const frictionCoeffDisplay = document.getElementById("frictionCoeffDisplay") as HTMLInputElement ?? fail();
-const minVelocityDisplay = document.getElementById("minVelocityDisplay") as HTMLInputElement ?? fail();
-const maxVelocityDisplay = document.getElementById("maxVelocityDisplay") as HTMLInputElement ?? fail();
 
 const MODE_80_PERCENT = 0;
 const MODE_ZOOM_OUT = 1;
@@ -103,20 +92,39 @@ interface PhysicsModel {
 };
 
 class FrictionPhysicsModel implements PhysicsModel {
-  stopRatio: number;
-  frictionRatio: number;
-  frictionCoeff: number;
-  minVelocity: number;
-  maxVelocity: number;
-  velocity: number;
+  stopRatioInput = document.getElementById("stopRatioInput") as HTMLInputElement ?? fail();
+  frictionRatioInput = document.getElementById("frictionRatioInput") as HTMLInputElement ?? fail();
+  frictionCoeffInput = document.getElementById("frictionCoeffInput") as HTMLInputElement ?? fail();
+  minVelocityInput = document.getElementById("minVelocityInput") as HTMLInputElement ?? fail();
+  maxVelocityInput = document.getElementById("maxVelocityInput") as HTMLInputElement ?? fail();
+
+  stopRatio = parseFloat(this.stopRatioInput.value);
+  frictionRatio = parseFloat(this.frictionRatioInput.value);
+  frictionCoeff = parseFloat(this.frictionCoeffInput.value);
+  minVelocity = parseFloat(this.minVelocityInput.value);
+  maxVelocity = parseFloat(this.maxVelocityInput.value);
+  velocity = this.maxVelocity;
+
+  stopRatioDisplay = document.getElementById("stopRatioDisplay") as HTMLInputElement ?? fail();
+  frictionRatioDisplay = document.getElementById("frictionRatioDisplay") as HTMLInputElement ?? fail();
+  frictionCoeffDisplay = document.getElementById("frictionCoeffDisplay") as HTMLInputElement ?? fail();
+  minVelocityDisplay = document.getElementById("minVelocityDisplay") as HTMLInputElement ?? fail();
+  maxVelocityDisplay = document.getElementById("maxVelocityDisplay") as HTMLInputElement ?? fail();
 
   constructor() {
-    this.stopRatio = parseFloat(stopRatioInput.value);
-    this.frictionRatio = parseFloat(frictionRatioInput.value);
-    this.frictionCoeff = parseFloat(frictionCoeffInput.value);
-    this.minVelocity = parseFloat(minVelocityInput.value);
-    this.maxVelocity = parseFloat(maxVelocityInput.value);
-    this.velocity = this.maxVelocity;
+    this.stopRatioInput.addEventListener("input", updateDisplays);
+    this.frictionRatioInput.addEventListener("input", updateDisplays);
+    this.frictionCoeffInput.addEventListener("input", updateDisplays);
+    this.minVelocityInput.addEventListener("input", updateDisplays);
+    this.maxVelocityInput.addEventListener("input", updateDisplays);
+  }
+
+  updateDisplays() {
+    this.stopRatioDisplay.innerHTML = this.stopRatioInput.value;
+    this.frictionRatioDisplay.innerHTML = this.frictionRatioInput.value;
+    this.frictionCoeffDisplay.innerHTML = this.frictionCoeffInput.value;
+    this.minVelocityDisplay.innerHTML = this.minVelocityInput.value;
+    this.maxVelocityDisplay.innerHTML = this.maxVelocityInput.value;
   }
 
   advance(finished: (d?: unknown) => void): AdvanceResult {
@@ -201,6 +209,8 @@ function snapshotValues() {
   networkStart = performance.now()
   networkDelay = parseFloat(networkDelayInput.value);
 
+  physicsModel = new FrictionPhysicsModel();
+
   for (const option of modeRadioButtonInputs) {
     if (option.checked) {
       mode = parseInt(option.value);
@@ -210,11 +220,8 @@ function snapshotValues() {
 
 function updateDisplays() {
   networkDelayDisplay.innerHTML = networkDelayInput.value;
-  stopRatioDisplay.innerHTML = stopRatioInput.value;
-  frictionRatioDisplay.innerHTML = frictionRatioInput.value;
-  frictionCoeffDisplay.innerHTML = frictionCoeffInput.value;
-  minVelocityDisplay.innerHTML = minVelocityInput.value;
-  maxVelocityDisplay.innerHTML = maxVelocityInput.value;
+
+  physicsModel.updateDisplays();
 
   // This is a bit overkill, but with mode switching, these were sometimes getting out of sync.
   snapshotValues();
@@ -223,11 +230,7 @@ function updateDisplays() {
 
 function init() {
   networkDelayInput.addEventListener("input", updateDisplays);
-  stopRatioInput.addEventListener("input", updateDisplays);
-  frictionRatioInput.addEventListener("input", updateDisplays);
-  frictionCoeffInput.addEventListener("input", updateDisplays);
-  minVelocityInput.addEventListener("input", updateDisplays);
-  maxVelocityInput.addEventListener("input", updateDisplays);
+
   for (const option of modeRadioButtonInputs) {
     console.log(option);
     option.addEventListener("click", updateDisplays)
