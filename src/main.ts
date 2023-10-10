@@ -1,10 +1,10 @@
 import './style.css'
 import { setupCounter } from './counter.ts'
 
-let animationLock : Animation;
+let animationLock: Animation;
 let transition;
 
-let networkStart : number;
+let networkStart: number;
 let animating = false;
 let pointingDown = false;
 
@@ -29,10 +29,10 @@ const minVelocityDisplay = document.getElementById("minVelocityDisplay") as HTML
 const maxVelocityDisplay = document.getElementById("maxVelocityDisplay") as HTMLInputElement ?? fail();
 
 const MODE_80_PERCENT = 0;
-const MODE_VERTICAL_COMMIT = 1;
+const MODE_ZOOM_OUT = 1;
 let mode = MODE_80_PERCENT;
 
-function handlePointerDown(e:PointerEvent) {
+function handlePointerDown(e: PointerEvent) {
   if ((e.target as HTMLElement)?.id != "" || animating) {
     return;
   }
@@ -48,23 +48,19 @@ function handlePointerDown(e:PointerEvent) {
     animationLock.pause();
     scrim.style.display = "block";
   });
-
-  if (mode == MODE_VERTICAL_COMMIT) {
-    document.documentElement.style.setProperty("--vertical-offset", `${100}px`);
-  }
 }
 
 const maxOffset = document.documentElement.getBoundingClientRect().width;
 let offset = 0;
 finishAnimation()
 
-function handlePointerMove(e:PointerEvent) {
+function handlePointerMove(e: PointerEvent) {
   if (!pointingDown) {
     return;
   }
 
   offset += e.movementX;
-  if (offset < 0 && mode != MODE_VERTICAL_COMMIT) {
+  if (offset < 0) {
     offset = 0;
   }
   document.documentElement.style.setProperty("--offset", `${offset}px`);
@@ -77,7 +73,7 @@ function handlePointerMove(e:PointerEvent) {
   }
 }
 
-function handlePointerUp(_:PointerEvent) {
+function handlePointerUp(_: PointerEvent) {
   if (!pointingDown) {
     return;
   }
@@ -91,67 +87,84 @@ function handlePointerUp(_:PointerEvent) {
     //let maxOffset = document.documentElement.getBoundingClientRect().width;
     //document.documentElement.style.setProperty("--offset", `${maxOffset}px`);
 
-    let scrimOut = document.documentElement.animate([ { '--scrim': 0 } ], { duration: 100 });
+    let scrimOut = document.documentElement.animate([{ '--scrim': 0 }], { duration: 100 });
     scrimOut.finished.then(finishAnimation);
   });
 }
 
-let networkDelay : number;
-let stopRatio : number;
-let frictionRatio : number;
-let frictionCoeff : number;
-let minVelocity : number;
-let maxVelocity : number;
+let networkDelay: number;
+let stopRatio: number;
+let frictionRatio: number;
+let frictionCoeff: number;
+let minVelocity: number;
+let maxVelocity: number;
 
-function advance(velocity: number, finished : (d?:unknown) => void) {
-  let target = maxOffset;
-  if (mode == MODE_VERTICAL_COMMIT) {
-    target = 0;
-  }
-  offset += velocity;
+interface AdvanceResult {
+  done: boolean,
+  velocity: number,
+}
 
-  // Is the page committed?
-  let committed = (performance.now() - networkStart) >= networkDelay;
-  let done = false;
-  if (committed) {
-    // We should be speeding up, but at least start with min velocity.
-    if (velocity < minVelocity) {
-      velocity = minVelocity;
-    } else if (offset >= target) {
-      // We've reached the end!
-      offset = target;
-      done = true;
-      finished();
-    } else if (velocity < maxVelocity) {
-      // Keep speeding up by inverse of friction up until max velocity.
-      velocity = velocity / (1 - frictionCoeff);
-      if (velocity >= maxVelocity) {
-        velocity = maxVelocity;
-      }
-    }
-    // TODO: is this racy?
-    // TODO: add a proper curve.
-    if (mode == MODE_VERTICAL_COMMIT) {
-      document.documentElement.animate([ { '--vertical-offset': 0 } ], { duration: 100 });
-    }
-  } else {
-    // If we're at the stop point, drop the velocity to 0.
-    if (offset >= target * stopRatio) {
-      offset = target * stopRatio;
-      velocity = 0;
-    } else if (offset > target * frictionRatio) {
-      // We've entered the friction zone, so start slowing down until min velocity.
-      velocity = velocity * (1 - frictionCoeff);
+interface PhysicsModel {
+  advance(velocity: number, finished: (d?: unknown) => void): AdvanceResult;
+};
+
+class FrictionPhysicsModel implements PhysicsModel {
+  advance(velocity: number, finished: (d?: unknown) => void): AdvanceResult {
+    console.log("TICK");
+    let target = maxOffset;
+    offset += velocity;
+
+    // Is the page committed?
+    let committed = (performance.now() - networkStart) >= networkDelay;
+    let done = false;
+    if (committed) {
+      // We should be speeding up, but at least start with min velocity.
       if (velocity < minVelocity) {
         velocity = minVelocity;
+      } else if (offset >= target) {
+        // We've reached the end!
+        offset = target;
+        done = true;
+        console.log("Reached the end");
+        finished();
+      } else if (velocity < maxVelocity) {
+        // Keep speeding up by inverse of friction up until max velocity.
+        velocity = velocity / (1 - frictionCoeff);
+        if (velocity >= maxVelocity) {
+          velocity = maxVelocity;
+        }
+      }
+    } else {
+      // If we're at the stop point, drop the velocity to 0.
+      if (offset >= target * stopRatio) {
+        offset = target * stopRatio;
+        velocity = 0;
+      } else if (offset > target * frictionRatio) {
+        // We've entered the friction zone, so start slowing down until min velocity.
+        velocity = velocity * (1 - frictionCoeff);
+        if (velocity < minVelocity) {
+          velocity = minVelocity;
+        }
       }
     }
+
+    document.documentElement.style.setProperty("--offset", `${offset}px`);
+
+    return {
+      done,
+      velocity,
+    }
   }
+}
 
-  document.documentElement.style.setProperty("--offset", `${offset}px`);
+let physicsModel = new FrictionPhysicsModel();
 
-  if (!done) {
-    requestAnimationFrame(() => { advance(velocity, finished) });
+function advance(velocity:number, finished: (d?: unknown) => void) {
+  const advanceResult = physicsModel.advance(velocity, finished);
+  console.log(advanceResult);
+  if (!advanceResult.done) {
+    console.log("REQUEST;")
+    requestAnimationFrame(() => { advance(advanceResult.velocity, finished) });
   }
 }
 
@@ -167,11 +180,6 @@ function startAnimation() {
 function finishAnimation() {
   // Reset stuff.
   offset = 0;
-  if (mode == MODE_VERTICAL_COMMIT) {
-    // TODO: why do we need the extra 10 pixel offset to keep this offscreen?
-    // Note that we do need 5px to keep the drop shadow offscreen, though this is ugly.
-    offset = -(maxOffset + 15);
-  }
   animating = false;
   document.documentElement.style.setProperty("--offset", `${offset}px`);
   document.documentElement.style.setProperty("--vertical-offset", '0px');
@@ -204,16 +212,16 @@ function snapshotValues() {
 }
 
 function updateDisplays() {
- networkDelayDisplay.innerHTML = networkDelayInput.value;
- stopRatioDisplay.innerHTML = stopRatioInput.value;
- frictionRatioDisplay.innerHTML = frictionRatioInput.value;
- frictionCoeffDisplay.innerHTML = frictionCoeffInput.value;
- minVelocityDisplay.innerHTML = minVelocityInput.value;
- maxVelocityDisplay.innerHTML = maxVelocityInput.value;
+  networkDelayDisplay.innerHTML = networkDelayInput.value;
+  stopRatioDisplay.innerHTML = stopRatioInput.value;
+  frictionRatioDisplay.innerHTML = frictionRatioInput.value;
+  frictionCoeffDisplay.innerHTML = frictionCoeffInput.value;
+  minVelocityDisplay.innerHTML = minVelocityInput.value;
+  maxVelocityDisplay.innerHTML = maxVelocityInput.value;
 
- // This is a bit overkill, but with mode switching, these were sometimes getting out of sync.
- snapshotValues();
- finishAnimation();
+  // This is a bit overkill, but with mode switching, these were sometimes getting out of sync.
+  snapshotValues();
+  finishAnimation();
 }
 
 function init() {
