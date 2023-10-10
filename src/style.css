@@ -1,0 +1,139 @@
+
+body {
+  background: lightblue;
+  font-family: "Droid Sans", sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+* {
+  user-select: none;
+}
+
+:root, body {
+  touch-action: none;
+}
+
+.slider-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.title {
+  margin-top: 30px;
+  width: 80%;
+  font-size: 24pt;
+  text-align: center;
+  pointer-events: none;
+}
+
+.description {
+  width: 80%;
+  margin: 0 20px 0 20px;
+  text-align: justify;
+  pointer-events: none;
+}
+
+.slider-window {
+    background: #666;
+    width: 80%;
+    max-width: 300px;
+    margin: 10px 10% 10px 10%;
+    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+}
+
+.slider-label {
+    color: #fff;
+    padding: 10px;
+    text-align: center;
+}
+
+.slider-label input {
+  width: 100%;
+}
+
+.slider-label span {
+  color: lightgreen;
+  font-weight: bold;
+}
+
+.slider-label h2 {
+    font-size: 1.2rem;
+    margin: 0;
+}
+
+.slider-label p {
+    font-size: 1rem;
+    margin: 0;
+}
+
+@property --offset {
+  syntax: "<length>";
+  initial-value: 0px;
+  inherits: true;
+}
+
+@property --vertical-offset {
+  syntax: "<length>";
+  initial-value: 0px;
+  inherits: true;
+}
+
+
+@property --scrim {
+  syntax: "<number>";
+  initial-value: 0;
+  inherits: true;
+}
+
+:root {
+  --offset: 0px;
+  --scrim: 0;
+}
+
+::view-transition-old(root) {
+  animation: unset;
+  transform: translateX(var(--offset)) translateY(var(--vertical-offset));
+  opacity: 1;
+  z-index: 1;
+  box-shadow: 0 0 10px black;
+}
+
+::view-transition {
+  pointer-events: none;
+}
+
+::view-transition-new(root) {
+  animation: unset;
+  opacity: 1;
+  z-index: 0;
+}
+#scrim {
+  position: absolute;
+  inset: 0;
+  background: black;
+  opacity: var(--scrim);
+}
+
+.scroller {
+  width: 100%;
+  overflow: auto;
+  flex-grow: 1;
+}
+
+  fieldset {
+    border:0;
+  }
+
+  /* TODO: this styling is redundant with some of the slider styling. */
+  #mode_window {
+    text-align: left;
+    color:white;
+  }
+
+  #mode_window h2 {
+    text-align:center;
+    padding:0;
+  }
