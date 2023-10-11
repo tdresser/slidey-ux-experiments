@@ -1,22 +1,24 @@
 import { AdvanceResult, PhysicsModel, PhysicsModelInit } from './PhysicsModel.ts'
+import { Point, findVelocity } from './util.ts';
 // import { fail } from './util.ts';
 
 interface SpringConfig {
     frequencyResponse : number,
-    dampingRatio : number
+    dampingRatio : number,
+    name: string, // Debug only.
 }
 
-const SPRING_AT_REST_HISTORY_SIZE = 10;
-const SPRING_AT_REST_THRESHOLD = 10;
+const SPRING_HISTORY_SIZE = 10;
+const SPRING_AT_REST_THRESHOLD = 10000;
 
 class Spring {
     mass = 1;
-    initialVelocity = 0; // TODO
-    // dampingCoefficient: number;
+    initialVelocity = 0;
     dampingRatio: number;
     undampedNaturalFrequency: number;
     dampedNaturalFrequency: number;
-    lastNFrames: number[];
+    lastNFrames: Point[];
+    name: string;
 
     constructor(springConfig: SpringConfig) {
         const stiffness = (((2 * Math.PI) / springConfig.frequencyResponse)**2) * this.mass
@@ -24,31 +26,37 @@ class Spring {
         this.undampedNaturalFrequency = Math.sqrt(stiffness / this.mass)
         this.dampedNaturalFrequency = this.undampedNaturalFrequency * Math.sqrt(Math.abs(1 - (springConfig.dampingRatio)**2))
         this.dampingRatio = springConfig.dampingRatio;
-        // Used to check if we're at rest.
+        // Used to compute velocity, and check if we're at rest.
         this.lastNFrames = [];
+        this.name = springConfig.name;
     }
 
     position(startPosition: number, time: number): AdvanceResult {
+        console.log("Start position: " + startPosition);
+        console.log("Time: " + time);
         const a = this.undampedNaturalFrequency * this.dampingRatio
         const b = this.dampedNaturalFrequency
         const c = (this.initialVelocity + a * startPosition) / b
         const d = startPosition
         const position = Math.exp(-a * time) * (c * Math.sin(b * time) + (d * Math.cos(b * time)));
+
         if (isNaN(position) || !isFinite(position)) {
             throw("Spring config invalid. Position: " + position);
         }
-        console.log(this);
-        this.lastNFrames.push(position);
+        this.lastNFrames.push({
+            offset:position,
+            time
+        });
 
         let done = false;
 
-        if (this.lastNFrames.length > SPRING_AT_REST_HISTORY_SIZE) {
+        if (this.lastNFrames.length > SPRING_HISTORY_SIZE) {
             this.lastNFrames.shift();
             let sum = 0;
             for (let i of this.lastNFrames) {
-                sum += i*i;
+                sum += i.offset*i.offset;
             }
-            done = sum < SPRING_AT_REST_THRESHOLD * SPRING_AT_REST_HISTORY_SIZE;
+            done = sum < SPRING_AT_REST_THRESHOLD * SPRING_HISTORY_SIZE;
         }
         return {
             offset: position,
@@ -56,6 +64,9 @@ class Spring {
         };
     }
 
+    velocity() {
+        return findVelocity(this.lastNFrames);
+    }
 
 }
 
@@ -64,58 +75,58 @@ export class SpringPhysicsModel extends PhysicsModel {
   #spring100: Spring;
   #spring80: Spring;
   #spring0: Spring;
+  lastRaf: number | null = null;
   hasCommitted = false;
 
   constructor(init:PhysicsModelInit) {
     super(init);
+    this.animationStartOffset = this.animationStartTime;
     this.#spring100 = new Spring({
-        frequencyResponse: 1.2,
-        dampingRatio: 0.9
+        frequencyResponse: 12000000,
+        dampingRatio: 12000,
+        name: "100%",
     });
     this.#spring80 = new Spring({
-        frequencyResponse: 1.2,
-        dampingRatio: 0.8
+        frequencyResponse: 12000000,
+        dampingRatio: 10000,
+        name: "80%",
     });
     this.#spring0 = new Spring({
-        frequencyResponse: 1.2,
-        dampingRatio: 0.9
+        frequencyResponse: 12000000,
+        dampingRatio: 12000,
+        name: "0%",
     });
-
-    console.log("NEW MODEL " + this.networkDelay);
   }
 
   updateDisplays() {
   }
 
   advance(rafTime: number): AdvanceResult {
-    const time = (rafTime - this.animationStartTime) / 1000;
-    // The spring gets confused if you ask for the position when 0 time has past. To avoid this,
-    // don't actually switch springs until one frame after commit.
-    let singleFrameDelayOnCommitHack = false;
-
+    rafTime = rafTime;
     if (!this.hasCommitted && this.committed()) {
         // Switch springs!
-        // TODO - preserve velocity.
-        console.log("COMMIT");
-        console.log(this);
-        this.startAnimating(rafTime);
+        this.startAnimating(this.lastRaf || rafTime);
         this.hasCommitted = true;
-        singleFrameDelayOnCommitHack = true;
+        this.#spring100.initialVelocity = this.#spring80.velocity();
+        console.log("VELOCITY HANDOFF: " + this.#spring80.velocity());
     }
+    const time = rafTime - this.animationStartTime;;
 
     let springResult = null;
-    if (!this.hasCommitted || singleFrameDelayOnCommitHack) {
-        console.log("NOT THERE YET.")
+    if (!this.hasCommitted) {
         springResult = this.#spring80.position(this.maxOffset * 0.8 - this.animationStartOffset, time);
+        console.log(this.#spring80);
         this.offset = this.maxOffset * 0.8 - springResult.offset;
     } else {
+        console.log(this.#spring100);
         springResult = this.#spring100.position(this.maxOffset - this.animationStartOffset, time);
         this.offset = this.maxOffset - springResult.offset;
     }
     console.log("Offset " + this.offset);
 
+    this.lastRaf = rafTime;
     return {
-      done: springResult.done && this.hasCommitted && !singleFrameDelayOnCommitHack,
+      done: springResult.done && this.hasCommitted,
       offset: this.offset,
     }
   }

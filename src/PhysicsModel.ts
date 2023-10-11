@@ -11,7 +11,6 @@ export interface PhysicsModelInit {
 }
 
 export abstract class PhysicsModel {
-    dragStartTime: number;
     animationStartTime: number = 0;
     animationStartOffset: number = 0;
     networkDelay: number;
@@ -19,7 +18,6 @@ export abstract class PhysicsModel {
     offset: number = 0;
 
     constructor(init: PhysicsModelInit) {
-        this.dragStartTime = init.dragStartTime;
         this.networkDelay = init.networkDelay;
         this.maxOffset = init.targetOffset;
     }
@@ -34,6 +32,6 @@ export abstract class PhysicsModel {
     abstract updateDisplays(): void;
 
     committed() {
-        return (performance.now() - this.dragStartTime) >= this.networkDelay;
+        return (performance.now() - this.animationStartTime) >= this.networkDelay;
     }
 };
