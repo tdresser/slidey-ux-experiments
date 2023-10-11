@@ -40,6 +40,11 @@ function handlePointerDown(e: PointerEvent) {
   });
 }
 
+function offsetToScrimPercent(offset:number) {
+  let offsetAsPercent = offset / document.documentElement.getBoundingClientRect().width;
+  return 0.3 + (1 - offsetAsPercent) * 0.5;
+}
+
 function handlePointerMove(e: PointerEvent) {
   if (!pointingDown) {
     return;
@@ -47,11 +52,7 @@ function handlePointerMove(e: PointerEvent) {
 
   let offset = physicsModel.pointerMove(e);
   document.documentElement.style.setProperty("--offset", `${offset}px`);
-
-  let offsetAsPercent = offset / document.documentElement.getBoundingClientRect().width;
-  let scrim = 0.3 + (1 - offsetAsPercent) * 0.5;
-
-  document.documentElement.style.setProperty("--scrim", `${scrim}`);
+  document.documentElement.style.setProperty("--scrim", `${offsetToScrimPercent(offset)}`);
 }
 
 function handlePointerUp(e: PointerEvent) {
@@ -78,6 +79,7 @@ function advance(rafTime: number, finished: (d?: unknown) => void) {
   const advanceResult = physicsModel.advance(rafTime);
   console.log(advanceResult);
   document.documentElement.style.setProperty("--offset", `${advanceResult.offset}px`);
+  document.documentElement.style.setProperty("--scrim", `${offsetToScrimPercent(advanceResult.offset)}`);
   if (advanceResult.done) {
     finished();
   } else {
