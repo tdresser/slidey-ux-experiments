@@ -9,7 +9,7 @@ interface SpringConfig {
 }
 
 const SPRING_HISTORY_SIZE = 10;
-const SPRING_AT_REST_THRESHOLD = 100;
+const SPRING_AT_REST_THRESHOLD = 10;
 
 class Spring {
     mass = 1;
@@ -67,7 +67,6 @@ class Spring {
     velocity() {
         return findVelocity(this.lastNFrames);
     }
-
 }
 
 // Spring physics inspired by https://medium.com/@patoreyes23/designing-interaction-spring-animations-c8b8788a4b2a .
@@ -77,6 +76,7 @@ export class SpringPhysicsModel extends PhysicsModel {
   #spring0: Spring;
   lastRaf: number | null = null;
   hasCommitted = false;
+  pointerHistory: Point[] = [];
 
   constructor(init:PhysicsModelInit) {
     super(init);
@@ -131,11 +131,20 @@ export class SpringPhysicsModel extends PhysicsModel {
     }
   }
 
-  pointerMove(delta: number) : number {
-    this.offset += delta;
+  pointerMove(e:PointerEvent) : number {
+    this.offset += e.movementX;
+    this.pointerHistory.push({
+        offset: this.offset,
+        time: e.timeStamp
+    })
     if (this.offset < 0) {
       this.offset = 0;
     }
     return this.offset;
+  }
+
+  pointerUp(_: PointerEvent): void {
+      this.#spring80.initialVelocity = -findVelocity(this.pointerHistory);
+      console.log("STARTING VELOCITY: " + this.#spring80.initialVelocity);
   }
 }

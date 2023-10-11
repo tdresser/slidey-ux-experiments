@@ -79,8 +79,8 @@ export class FrictionPhysicsModel extends PhysicsModel {
     }
   }
 
-  pointerMove(delta: number) : number {
-    this.offset += delta;
+  pointerMove(e:PointerEvent) : number {
+    this.offset += e.movementX;
     if (this.offset < 0) {
       this.offset = 0;
     }

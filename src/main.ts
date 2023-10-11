@@ -45,7 +45,7 @@ function handlePointerMove(e: PointerEvent) {
     return;
   }
 
-  let offset = physicsModel.pointerMove(e.movementX);
+  let offset = physicsModel.pointerMove(e);
   document.documentElement.style.setProperty("--offset", `${offset}px`);
 
   let offsetAsPercent = offset / document.documentElement.getBoundingClientRect().width;
@@ -54,11 +54,12 @@ function handlePointerMove(e: PointerEvent) {
   document.documentElement.style.setProperty("--scrim", `${scrim}`);
 }
 
-function handlePointerUp(_: PointerEvent) {
+function handlePointerUp(e: PointerEvent) {
   if (!pointingDown) {
     return;
   }
   pointingDown = false;
+  physicsModel.pointerUp(e);
 
   startAnimation().then(() => {
     // Pretty sure this isn't needed.

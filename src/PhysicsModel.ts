@@ -28,7 +28,8 @@ export abstract class PhysicsModel {
     }
 
     abstract advance(rafTime: number): AdvanceResult;
-    abstract pointerMove(delta: number): number;
+    abstract pointerMove(e:PointerEvent): number;
+    pointerUp(_:PointerEvent) {}
     abstract updateDisplays(): void;
 
     committed() {
