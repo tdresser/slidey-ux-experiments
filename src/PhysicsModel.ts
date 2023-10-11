@@ -29,7 +29,7 @@ export abstract class PhysicsModel {
         this.animationStartOffset = this.offset;
     }
 
-    abstract advance(): AdvanceResult;
+    abstract advance(rafTime: number): AdvanceResult;
     abstract pointerMove(delta: number): number;
     abstract updateDisplays(): void;
 

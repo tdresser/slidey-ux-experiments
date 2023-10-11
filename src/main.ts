@@ -4,7 +4,7 @@ import { SpringPhysicsModel } from './SpringPhysicsModel.ts';
 import { PhysicsModel } from './PhysicsModel.ts';
 import { fail } from './util.ts';
 
-let DefaultPhysicsModel = FrictionPhysicsModel;
+let DefaultPhysicsModel = SpringPhysicsModel;
 
 let animationLock: Animation;
 let transition;
@@ -73,14 +73,14 @@ function handlePointerUp(_: PointerEvent) {
 let physicsModel: PhysicsModel = initPhysics();
 finishAnimation()
 
-function advance(finished: (d?: unknown) => void) {
-  const advanceResult = physicsModel.advance();
+function advance(rafTime: number, finished: (d?: unknown) => void) {
+  const advanceResult = physicsModel.advance(rafTime);
   console.log(advanceResult);
   document.documentElement.style.setProperty("--offset", `${advanceResult.offset}px`);
   if (advanceResult.done) {
     finished();
   } else {
-    requestAnimationFrame(() => { advance(finished) });
+    requestAnimationFrame((rafTime) => { advance(rafTime, finished) });
   }
 }
 
@@ -88,7 +88,7 @@ function startAnimation() {
   animating = true;
   physicsModel.startAnimating(performance.now());
   return new Promise(resolve => {
-    advance(resolve);
+    advance(performance.now(), resolve);
   });
 }
 

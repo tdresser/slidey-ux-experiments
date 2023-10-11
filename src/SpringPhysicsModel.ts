@@ -33,10 +33,7 @@ class Spring {
         const b = this.dampedNaturalFrequency
         const c = (this.initialVelocity + a * startPosition) / b
         const d = startPosition
-        console.log(`${a} ${b} ${c} ${d}`)
-        console.log("TIME: " + time)
         const position = Math.exp(-a * time) * (c * Math.sin(b * time) + (d * Math.cos(b * time)));
-        console.log("Start position " + startPosition);
         if (isNaN(position) || !isFinite(position)) {
             throw("Spring config invalid. Position: " + position);
         }
@@ -51,8 +48,6 @@ class Spring {
             for (let i of this.lastNFrames) {
                 sum += i*i;
             }
-            console.log("SUM: " + sum);
-            console.log(this.lastNFrames);
             done = sum < SPRING_AT_REST_THRESHOLD * SPRING_AT_REST_HISTORY_SIZE;
         }
         return {
@@ -66,11 +61,22 @@ class Spring {
 
 // Spring physics inspired by https://medium.com/@patoreyes23/designing-interaction-spring-animations-c8b8788a4b2a .
 export class SpringPhysicsModel extends PhysicsModel {
-  #spring: Spring;
+  #spring100: Spring;
+  #spring80: Spring;
+  #spring0: Spring;
+  hasCommitted = false;
 
   constructor(init:PhysicsModelInit) {
     super(init);
-    this.#spring = new Spring({
+    this.#spring100 = new Spring({
+        frequencyResponse: 1.2,
+        dampingRatio: 0.9
+    });
+    this.#spring80 = new Spring({
+        frequencyResponse: 1.2,
+        dampingRatio: 0.8
+    });
+    this.#spring0 = new Spring({
         frequencyResponse: 1.2,
         dampingRatio: 0.9
     });
@@ -81,14 +87,33 @@ export class SpringPhysicsModel extends PhysicsModel {
   updateDisplays() {
   }
 
-  advance(): AdvanceResult {
-    const time = (performance.now() - this.animationStartTime) / 1000;
-    const springResult = this.#spring.position(this.maxOffset - this.animationStartOffset, time);
-    this.offset = this.maxOffset - springResult.offset;
-    console.log("Offset " + springResult.offset);
+  advance(rafTime: number): AdvanceResult {
+    const time = (rafTime - this.animationStartTime) / 1000;
+    let singleFrameDelayOnCommitHack = false;
+
+    if (!this.hasCommitted && this.committed()) {
+        // Switch springs!
+        // TODO - preserve velocity.
+        console.log("COMMIT");
+        console.log(this);
+        this.startAnimating(rafTime);
+        this.hasCommitted = true;
+        singleFrameDelayOnCommitHack = true;
+    }
+
+    let springResult = null;
+    if (!this.hasCommitted/* || singleFrameDelayOnCommitHack*/) {
+        console.log("NOT THERE YET.")
+        springResult = this.#spring80.position(this.maxOffset * 0.8 - this.animationStartOffset, time);
+        this.offset = this.maxOffset * 0.8 - springResult.offset;
+    } else {
+        springResult = this.#spring100.position(this.maxOffset - this.animationStartOffset, time);
+        this.offset = this.maxOffset - springResult.offset;
+    }
+    console.log("Offset " + this.offset);
 
     return {
-      done: springResult.done,
+      done: springResult.done && this.hasCommitted,
       offset: this.offset,
     }
   }
