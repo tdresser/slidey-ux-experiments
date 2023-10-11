@@ -90,14 +90,14 @@ body {
 
 @property --main-background-color {
   syntax: "<color>";
-  initial-value: "lightblue";
+  initial-value: lightblue;
   inherits: true;
 }
 
 :root {
   --offset: 0px;
   --scrim: 0;
-  --main-background-color: "lightblue";
+  --main-background-color: lightblue;
 }
 
 ::view-transition-old(root) {
