@@ -89,6 +89,8 @@ export class SpringPhysicsModel extends PhysicsModel {
 
   advance(rafTime: number): AdvanceResult {
     const time = (rafTime - this.animationStartTime) / 1000;
+    // The spring gets confused if you ask for the position when 0 time has past. To avoid this,
+    // don't actually switch springs until one frame after commit.
     let singleFrameDelayOnCommitHack = false;
 
     if (!this.hasCommitted && this.committed()) {
@@ -102,7 +104,7 @@ export class SpringPhysicsModel extends PhysicsModel {
     }
 
     let springResult = null;
-    if (!this.hasCommitted/* || singleFrameDelayOnCommitHack*/) {
+    if (!this.hasCommitted || singleFrameDelayOnCommitHack) {
         console.log("NOT THERE YET.")
         springResult = this.#spring80.position(this.maxOffset * 0.8 - this.animationStartOffset, time);
         this.offset = this.maxOffset * 0.8 - springResult.offset;
@@ -113,7 +115,7 @@ export class SpringPhysicsModel extends PhysicsModel {
     console.log("Offset " + this.offset);
 
     return {
-      done: springResult.done && this.hasCommitted,
+      done: springResult.done && this.hasCommitted && !singleFrameDelayOnCommitHack,
       offset: this.offset,
     }
   }
