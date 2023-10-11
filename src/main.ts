@@ -22,8 +22,7 @@ const MODE_ZOOM_OUT = 1;
 let mode = MODE_80_PERCENT;
 
 function randomColor() {
-  return "lightblue";
-  //return "#" + Math.floor(Math.random()*16777215).toString(16);
+  return "#" + Math.floor(Math.random()*16777215).toString(16);
 }
 
 function handlePointerDown(e: PointerEvent) {
@@ -38,7 +37,7 @@ function handlePointerDown(e: PointerEvent) {
   transition.ready.then(() => {
     document.documentElement.style.setProperty("--main-background-color", randomColor());
     animationLock = document.documentElement.animate({}, {
-      duration: 100,
+      duration: 0,
       pseudoElement: '::view-transition-new(root)',
     });
     animationLock.pause();
