@@ -1,5 +1,5 @@
 import { AdvanceResult, PhysicsModel, PhysicsModelInit } from './PhysicsModel.ts'
-import { fail } from './util.ts';
+// import { fail } from './util.ts';
 
 interface SpringConfig {
     frequencyResponse : number,

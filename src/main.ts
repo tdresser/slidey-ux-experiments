@@ -1,8 +1,10 @@
 import './style.css'
 import { FrictionPhysicsModel } from './FrictionPhysicsModel.ts'
-import { SpringPhysicsModel } from './SpringPhysicsModel.ts';
+// import { SpringPhysicsModel } from './SpringPhysicsModel.ts';
 import { PhysicsModel } from './PhysicsModel.ts';
 import { fail } from './util.ts';
+
+let DefaultPhysicsModel = FrictionPhysicsModel;
 
 let animationLock: Animation;
 let transition;
@@ -15,9 +17,9 @@ const networkDelayInput = document.getElementById("networkDelayInput") as HTMLIn
 const modeRadioButtonInputs = Array.from(document.querySelectorAll('input[name="mode"]')).map(x => x as HTMLInputElement);
 const networkDelayDisplay = document.getElementById("networkDelayDisplay") as HTMLInputElement ?? fail();
 
-const MODE_80_PERCENT = 0;
-const MODE_ZOOM_OUT = 1;
-let mode = MODE_80_PERCENT;
+// const MODE_80_PERCENT = 0;
+// const MODE_ZOOM_OUT = 1;
+// let mode = MODE_80_PERCENT;
 
 function handlePointerDown(e: PointerEvent) {
   if ((e.target as HTMLElement)?.id != "" || animating) {
@@ -105,11 +107,11 @@ function finishAnimation() {
 function initPhysics(): PhysicsModel {
   for (const option of modeRadioButtonInputs) {
     if (option.checked) {
-      mode = parseInt(option.value);
+      // mode = parseInt(option.value);
     }
   }
 
-  return new SpringPhysicsModel({
+  return new DefaultPhysicsModel({
     dragStartTime: performance.now(),
     networkDelay: parseFloat(networkDelayInput.value),
     targetOffset: document.documentElement.getBoundingClientRect().width,
