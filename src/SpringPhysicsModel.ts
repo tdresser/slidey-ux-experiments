@@ -9,7 +9,7 @@ interface SpringConfig {
 }
 
 const SPRING_HISTORY_SIZE = 10;
-const SPRING_AT_REST_THRESHOLD = 10000;
+const SPRING_AT_REST_THRESHOLD = 100;
 
 class Spring {
     mass = 1;
@@ -82,18 +82,18 @@ export class SpringPhysicsModel extends PhysicsModel {
     super(init);
     this.animationStartOffset = this.animationStartTime;
     this.#spring100 = new Spring({
-        frequencyResponse: 12000000,
-        dampingRatio: 12000,
+        frequencyResponse: 1000,
+        dampingRatio: 0.95,
         name: "100%",
     });
     this.#spring80 = new Spring({
-        frequencyResponse: 12000000,
-        dampingRatio: 10000,
+        frequencyResponse: 1200,
+        dampingRatio: 0.70,
         name: "80%",
     });
     this.#spring0 = new Spring({
-        frequencyResponse: 12000000,
-        dampingRatio: 12000,
+        frequencyResponse: 1000,
+        dampingRatio: 0.95,
         name: "0%",
     });
   }
