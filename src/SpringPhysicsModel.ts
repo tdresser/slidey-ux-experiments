@@ -137,6 +137,9 @@ export class SpringPhysicsModel extends PhysicsModel {
         offset: this.offset,
         time: e.timeStamp
     })
+    if (this.pointerHistory.length > 10) {
+        this.pointerHistory.shift();
+    }
     if (this.offset < 0) {
       this.offset = 0;
     }
