@@ -21,6 +21,11 @@ const MODE_80_PERCENT = 0;
 const MODE_ZOOM_OUT = 1;
 let mode = MODE_80_PERCENT;
 
+function randomColor() {
+  return "lightblue";
+  //return "#" + Math.floor(Math.random()*16777215).toString(16);
+}
+
 function handlePointerDown(e: PointerEvent) {
   if ((e.target as HTMLElement)?.id != "" || animating) {
     return;
@@ -31,6 +36,7 @@ function handlePointerDown(e: PointerEvent) {
   // @ts-ignore
   transition = document.startViewTransition();
   transition.ready.then(() => {
+    document.documentElement.style.setProperty("--main-background-color", randomColor());
     animationLock = document.documentElement.animate({}, {
       duration: 100,
       pseudoElement: '::view-transition-new(root)',
@@ -66,13 +72,14 @@ function handlePointerUp(e: PointerEvent) {
     // Pretty sure this isn't needed.
     //let maxOffset = document.documentElement.getBoundingClientRect().width;
     //document.documentElement.style.setProperty("--offset", `${maxOffset}px`);
-
     let scrimOut = document.documentElement.animate([{ '--scrim': 0 }], { duration: 100 });
     scrimOut.finished.then(finishAnimation);
+    //finishAnimation();
   });
 }
 
 let physicsModel: PhysicsModel = initPhysics();
+
 finishAnimation()
 
 function advance(rafTime: number, finished: (d?: unknown) => void) {

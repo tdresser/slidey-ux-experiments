@@ -82,12 +82,12 @@ export class SpringPhysicsModel extends PhysicsModel {
     super(init);
     this.animationStartOffset = this.animationStartTime;
     this.#spring100 = new Spring({
-        frequencyResponse: 1000,
+        frequencyResponse: 500,
         dampingRatio: 0.95,
         name: "100%",
     });
     this.#spring80 = new Spring({
-        frequencyResponse: 1200,
+        frequencyResponse: 600,
         dampingRatio: 0.70,
         name: "80%",
     });

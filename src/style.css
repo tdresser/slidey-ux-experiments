@@ -1,6 +1,6 @@
 
 body {
-  background: lightblue;
+  background: var(--main-background-color);
   font-family: "Droid Sans", sans-serif;
   margin: 0;
   padding: 0;
@@ -88,9 +88,16 @@ body {
   inherits: true;
 }
 
+@property --main-background-color {
+  syntax: "<color>";
+  initial-value: "lightblue";
+  inherits: true;
+}
+
 :root {
   --offset: 0px;
   --scrim: 0;
+  --main-background-color: "lightblue";
 }
 
 ::view-transition-old(root) {
