@@ -24,7 +24,6 @@ let seed = 100;
 function randomColor() {
   seed = seed+1;
   const rand = ((seed * 185852 + 1) % 34359738337) / 34359738337
-  console.log(rand);
   return "#" + Math.floor(rand*16777215).toString(16);
 }
 

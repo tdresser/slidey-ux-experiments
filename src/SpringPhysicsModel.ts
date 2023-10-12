@@ -1,6 +1,5 @@
 import { AdvanceResult, PhysicsModel, PhysicsModelInit } from './PhysicsModel.ts'
-import { Point, findVelocity } from './util.ts';
-// import { fail } from './util.ts';
+import { Point, fail, findVelocity } from './util.ts';
 
 interface SpringConfig {
     frequencyResponse: number,
@@ -82,19 +81,33 @@ export class SpringPhysicsModel extends PhysicsModel {
     hasAborted = false;
     pointerHistory: Point[] = [];
 
+    spring80FrequencyResponseInput = document.getElementById("spring80FrequencyResponse") as HTMLInputElement ?? fail();
+    spring80FrequencyResponseDisplay = document.getElementById("spring80FrequencyResponseDisplay") as HTMLInputElement ?? fail();
+
+    spring80DampingRatioInput = document.getElementById("spring80DampingRatio") as HTMLInputElement ?? fail();
+    spring80DampingRatioDisplay = document.getElementById("spring80DampingRatioDisplay") as HTMLInputElement ?? fail();
+
+    spring80FrequencyResponse = parseFloat(this.spring80FrequencyResponseInput.value);
+    spring80DampingRatio = parseFloat(this.spring80DampingRatioInput.value);
+
     constructor(init: PhysicsModelInit) {
         super(init);
         this.animationStartOffset = 0;
+
+        this.spring80FrequencyResponseInput.addEventListener("input", () => this.updateDisplays());
+        this.spring80DampingRatioInput.addEventListener("input", () => this.updateDisplays());
+
         this.#spring100 = new Spring({
             frequencyResponse: 200,
             dampingRatio: 0.95,
             name: "100%",
         });
         this.#spring80 = new Spring({
-            frequencyResponse: 1600,
-            dampingRatio: 0.80,
+            frequencyResponse: this.spring80FrequencyResponse,
+            dampingRatio: this.spring80DampingRatio,
             name: "80%",
         });
+        console.log(this.#spring80);
         this.#spring0 = new Spring({
             frequencyResponse: 200,
             dampingRatio: 0.9,
@@ -103,6 +116,9 @@ export class SpringPhysicsModel extends PhysicsModel {
     }
 
     updateDisplays() {
+        console.log(this.spring80FrequencyResponseInput.value);
+        this.spring80FrequencyResponseDisplay.innerHTML = this.spring80FrequencyResponseInput.value;
+        this.spring80DampingRatioDisplay.innerHTML = this.spring80DampingRatioInput.value;
     }
 
     advance(rafTime: number): AdvanceResult {
