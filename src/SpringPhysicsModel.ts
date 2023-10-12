@@ -8,6 +8,11 @@ interface SpringConfig {
     name: string, // Debug only.
 }
 
+interface SpringPosition {
+    offset: number,
+    done: boolean
+}
+
 const SPRING_HISTORY_SIZE = 10;
 const SPRING_AT_REST_THRESHOLD = 10;
 
@@ -31,7 +36,7 @@ class Spring {
         this.name = springConfig.name;
     }
 
-    position(startPosition: number, time: number): AdvanceResult {
+    position(startPosition: number, time: number): SpringPosition {
         console.log("Start position: " + startPosition);
         console.log("Time: " + time);
         const a = this.undampedNaturalFrequency * this.dampingRatio
@@ -112,7 +117,7 @@ export class SpringPhysicsModel extends PhysicsModel {
     }
     const time = rafTime - this.animationStartTime;;
 
-    let springResult = null;
+    let springResult: SpringPosition | null = null;
     if (!this.hasCommitted) {
         springResult = this.#spring80.position(this.maxOffset * 0.8 - this.animationStartOffset, time);
         console.log(this.#spring80);
