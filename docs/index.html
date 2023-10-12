@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Default Nav Transitions</title>
-  <script type="module" crossorigin src="/slidey-ux-experiments/assets/index-0e24479d.js"></script>
+  <script type="module" crossorigin src="/slidey-ux-experiments/assets/index-d5e0a05b.js"></script>
   <link rel="stylesheet" href="/slidey-ux-experiments/assets/index-3671dded.css">
 </head>
 
@@ -16,65 +16,11 @@
     <div class="title">
       Fun with Back Nav!
     </div>
-    <div class="slider-window" id="mode_window">
-      <div>
-        <h2>
-          Mode
-        </h2>
-        <fieldset>
-          <div>
-            <!-- values come from the MODE_ constants, e.g., MODE_80_PERCENT. -->
-            <input type="radio" id="80_percent" name="mode" value="0" checked />
-            <!-- TODO: why aren't the labels clickable? -->
-            <label for="80_percent">80 Percent</label>
-          </div>
-          <div>
-            <input type="radio" id="vertical_commit" name="mode" value="1" />
-            <label for="vertical_commit">Vertical Commit</label>
-          </div>
-        </fieldset>
-      </div>
-    </div>
     <div class="slider-window">
       <div class="slider-label">
         <h2>network delay: <span id="networkDelayDisplay"></span><span>ms</span></h2>
         <input id="networkDelayInput" type="range" min="0" max="5000" value="200">
         <p>how long to commit</p>
-      </div>
-    </div>
-    <div class="slider-window">
-      <div class="slider-label">
-        <h2>stop ratio: <span id="stopRatioDisplay"></span></h2>
-        <input id="stopRatioInput" type="range" min="0.7" max="1.0" value="0.8" step="0.05">
-        <p>animation stop point (e.g 80%)</p>
-      </div>
-    </div>
-    <div class="slider-window">
-      <div class="slider-label">
-        <h2>friction ratio: <span id="frictionRatioDisplay"></span></h2>
-        <input id="frictionRatioInput" type="range" min="0.1" max="1.0" value="0.5" step="0.05">
-        <p>animation slow down point (e.g. 50%)</p>
-      </div>
-    </div>
-    <div class="slider-window">
-      <div class="slider-label">
-        <h2>friction coefficient: <span id="frictionCoeffDisplay"></span></h2>
-        <input id="frictionCoeffInput" type="range" min="0.0" max="0.3" value="0.1" step="0.01">
-        <p>velocity friction coefficient</p>
-      </div>
-    </div>
-    <div class="slider-window">
-      <div class="slider-label">
-        <h2>min velocity: <span id="minVelocityDisplay"></span></h2>
-        <input id="minVelocityInput" type="range" min="2" max="10" value="5">
-        <p>velocity in pixels per frame</p>
-      </div>
-    </div>
-    <div class="slider-window">
-      <div class="slider-label">
-        <h2>max velocity: <span id="maxVelocityDisplay"></span></h2>
-        <input id="maxVelocityInput" type="range" min="10" max="50" value="25">
-        <p>velocity in pixels per frame</p>
       </div>
     </div>
   </div>
