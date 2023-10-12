@@ -14,12 +14,7 @@ let pointingDown = false;
 
 const scrim = document.getElementById("scrim") ?? fail();
 const networkDelayInput = document.getElementById("networkDelayInput") as HTMLInputElement ?? fail();
-const modeRadioButtonInputs = Array.from(document.querySelectorAll('input[name="mode"]')).map(x => x as HTMLInputElement);
 const networkDelayDisplay = document.getElementById("networkDelayDisplay") as HTMLInputElement ?? fail();
-
-const MODE_80_PERCENT = 0;
-const MODE_ZOOM_OUT = 1;
-let mode = MODE_80_PERCENT;
 
 function randomColor() {
   return "#" + Math.floor(Math.random()*16777215).toString(16);
@@ -68,12 +63,8 @@ function handlePointerUp(e: PointerEvent) {
   physicsModel.pointerUp(e);
 
   startAnimation().then(() => {
-    // Pretty sure this isn't needed.
-    //let maxOffset = document.documentElement.getBoundingClientRect().width;
-    //document.documentElement.style.setProperty("--offset", `${maxOffset}px`);
     let scrimOut = document.documentElement.animate([{ '--scrim': 0 }], { duration: 100 });
     scrimOut.finished.then(finishAnimation);
-    //finishAnimation();
   });
 }
 
@@ -114,12 +105,6 @@ function finishAnimation() {
 }
 
 function initPhysics(): PhysicsModel {
-  for (const option of modeRadioButtonInputs) {
-    if (option.checked) {
-      mode = parseInt(option.value);
-    }
-  }
-
   return new DefaultPhysicsModel({
     dragStartTime: performance.now(),
     networkDelay: parseFloat(networkDelayInput.value),
@@ -139,10 +124,6 @@ function updateDisplays() {
 
 function init() {
   networkDelayInput.addEventListener("input", updateDisplays);
-
-  for (const option of modeRadioButtonInputs) {
-    option.addEventListener("click", updateDisplays)
-  }
   updateDisplays();
 
   window.addEventListener("pointerdown", handlePointerDown);
