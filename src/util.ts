@@ -20,7 +20,5 @@ export function findVelocity(points: Point[]): number {
     if (!isFinite(vel)) {
         vel = 0;
     }
-    console.log(points);
-    console.log(ret);
     return ret.m;
 }

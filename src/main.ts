@@ -8,6 +8,7 @@ let transition;
 
 let animating = false;
 let pointingDown = false;
+let aborting = false;
 
 const scrim = document.getElementById("scrim") ?? fail();
 const networkDelayInput = document.getElementById("networkDelayInput") as HTMLInputElement ?? fail();
@@ -16,8 +17,15 @@ const networkDelayDisplay = document.getElementById("networkDelayDisplay") as HT
 const settingParallax = document.getElementById("settingParallax") as HTMLInputElement ?? fail();
 const settingLimitFingerDrag = document.getElementById("settingLimitFingerDrag") as HTMLInputElement ?? fail();
 
+let lastColor = "lightblue";
+
+// We want to generate the same color if you try swiping back but then abort multiple times in a row.
+let seed = 100;
 function randomColor() {
-  return "#" + Math.floor(Math.random()*16777215).toString(16);
+  seed = seed+1;
+  const rand = ((seed * 185852 + 1) % 34359738337) / 34359738337
+  console.log(rand);
+  return "#" + Math.floor(rand*16777215).toString(16);
 }
 
 function handlePointerDown(e: PointerEvent) {
@@ -30,6 +38,7 @@ function handlePointerDown(e: PointerEvent) {
   // @ts-ignore
   transition = document.startViewTransition();
   transition.ready.then(() => {
+    lastColor = document.documentElement.style.getPropertyValue("--main-background-color");
     document.documentElement.style.setProperty("--main-background-color", randomColor());
     animationLock = document.documentElement.animate({}, {
       duration: 0,
@@ -61,7 +70,12 @@ function handlePointerUp(e: PointerEvent) {
     return;
   }
   pointingDown = false;
-  physicsModel.pointerUp(e);
+  const aborted = physicsModel.pointerUp(e) == "abort";
+  if (aborted) {
+    // Reset the color when the animation finished.
+    aborting = true;
+    seed--;
+  }
 
   startAnimation().then(() => {
     let scrimOut = document.documentElement.animate([{ '--scrim': 0 }], { duration: 100 });
@@ -75,7 +89,6 @@ finishAnimation()
 
 function advance(rafTime: number, finished: (d?: unknown) => void) {
   const advanceResult = physicsModel.advance(rafTime);
-  console.log(advanceResult);
   document.documentElement.style.setProperty("--fg-offset", `${advanceResult.fgOffset}px`);
   document.documentElement.style.setProperty("--bg-offset", `${advanceResult.bgOffset}px`);
   document.documentElement.style.setProperty("--scrim", `${offsetToScrimPercent(advanceResult.fgOffset)}`);
@@ -100,6 +113,12 @@ function finishAnimation() {
   document.documentElement.style.setProperty("--fg-offset", '0px');
   document.documentElement.style.setProperty("--vertical-offset", '0px');
   document.documentElement.style.setProperty("--scrim", "0.0");
+
+  if (aborting) {
+    document.documentElement.style.setProperty("--main-background-color", lastColor);
+    aborting = false;
+  }
+
   if (animationLock) {
     animationLock.play();
   }

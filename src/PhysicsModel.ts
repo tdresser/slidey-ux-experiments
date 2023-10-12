@@ -21,7 +21,6 @@ export abstract class PhysicsModel {
     parallax: boolean;
     limitFingerDrag: boolean;
 
-
     constructor(init: PhysicsModelInit) {
         this.networkDelay = init.networkDelay;
         this.maxOffset = init.targetOffset;
@@ -36,7 +35,9 @@ export abstract class PhysicsModel {
 
     abstract advance(rafTime: number): AdvanceResult;
     abstract pointerMove(e:PointerEvent): AdvanceResult;
-    pointerUp(_:PointerEvent) {}
+    pointerUp(_:PointerEvent): "success" | "abort" {
+        return "success";
+    }
     abstract updateDisplays(): void;
 
     committed() {

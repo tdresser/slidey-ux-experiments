@@ -37,8 +37,6 @@ class Spring {
     }
 
     position(startPosition: number, time: number): SpringPosition {
-        console.log("Start position: " + startPosition);
-        console.log("Time: " + time);
         const a = this.undampedNaturalFrequency * this.dampingRatio
         const b = this.dampedNaturalFrequency
         const c = (this.initialVelocity + a * startPosition) / b
@@ -81,11 +79,12 @@ export class SpringPhysicsModel extends PhysicsModel {
     #spring0: Spring;
     lastRaf: number | null = null;
     hasCommitted = false;
+    hasAborted = false;
     pointerHistory: Point[] = [];
 
     constructor(init: PhysicsModelInit) {
         super(init);
-        this.animationStartOffset = this.animationStartTime;
+        this.animationStartOffset = 0;
         this.#spring100 = new Spring({
             frequencyResponse: 200,
             dampingRatio: 0.95,
@@ -97,8 +96,8 @@ export class SpringPhysicsModel extends PhysicsModel {
             name: "80%",
         });
         this.#spring0 = new Spring({
-            frequencyResponse: 1000,
-            dampingRatio: 0.95,
+            frequencyResponse: 200,
+            dampingRatio: 0.9,
             name: "0%",
         });
     }
@@ -113,21 +112,21 @@ export class SpringPhysicsModel extends PhysicsModel {
             this.startAnimating(this.lastRaf || rafTime);
             this.hasCommitted = true;
             this.#spring100.initialVelocity = this.#spring80.velocity();
-            console.log("VELOCITY HANDOFF: " + this.#spring80.velocity());
         }
         const time = rafTime - this.animationStartTime;;
 
         let springResult: SpringPosition | null = null;
-        if (!this.hasCommitted) {
+        if (this.hasAborted) {
+            springResult = this.#spring0.position(this.animationStartOffset, time);
+            // Prevent overshoot here.
+            this.offset = Math.max(springResult.offset, 0);
+        } else if (!this.hasCommitted) {
             springResult = this.#spring80.position(this.maxOffset * 0.8 - this.animationStartOffset, time);
-            console.log(this.#spring80);
             this.offset = this.maxOffset * 0.8 - springResult.offset;
         } else {
-            console.log(this.#spring100);
             springResult = this.#spring100.position(this.maxOffset - this.animationStartOffset, time);
             this.offset = this.maxOffset - springResult.offset;
         }
-        console.log("Offset " + this.offset);
 
         this.lastRaf = rafTime;
         return {
@@ -171,9 +170,21 @@ export class SpringPhysicsModel extends PhysicsModel {
         return 0.25 * (offset - this.maxOffset);
     }
 
-    pointerUp(_: PointerEvent): void {
+    pointerUp(_: PointerEvent): "success" | "abort" {
         // Don't let us overshoot too far. TODO: tune this.
-        this.#spring80.initialVelocity = Math.max(-findVelocity(this.pointerHistory), -1.2);
-        console.log("STARTING VELOCITY: " + this.#spring80.initialVelocity);
+        const velocity = -Math.max(-findVelocity(this.pointerHistory), -1.2);
+
+        // TODO: we could use the event position (but maybe it's already sent via a prior touchmove?)
+        // If the offset + 100ms at current velocity < threshold, abort.
+        console.log("offset", this.offset);
+        console.log("velocity", velocity);
+        if (((this.offset + velocity * 100) / this.maxOffset) < 0.3) {
+            this.hasAborted = true;
+            this.#spring0.initialVelocity = -velocity
+            return "abort";
+        } else {
+            this.#spring80.initialVelocity = -velocity
+            return "success"
+        }
     }
 }
