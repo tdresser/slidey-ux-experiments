@@ -50,7 +50,14 @@ body {
     text-align: center;
 }
 
-.slider-label input {
+.check-box-label {
+  display: inline-block;
+  width: 100%;
+  text-align: start;
+  margin-left: 25%;
+}
+
+.slider-label input[type="range"] {
   width: 100%;
 }
 
@@ -69,7 +76,13 @@ body {
     margin: 0;
 }
 
-@property --offset {
+@property --fg-offset {
+  syntax: "<length>";
+  initial-value: 0px;
+  inherits: true;
+}
+
+@property --bg-offset {
   syntax: "<length>";
   initial-value: 0px;
   inherits: true;
@@ -80,7 +93,6 @@ body {
   initial-value: 0px;
   inherits: true;
 }
-
 
 @property --scrim {
   syntax: "<number>";
@@ -95,17 +107,24 @@ body {
 }
 
 :root {
-  --offset: 0px;
+  --fg-offset: 0px;
+  --bg-offset: 0px;
   --scrim: 0;
   --main-background-color: lightblue;
 }
 
 ::view-transition-old(root) {
   animation: unset;
-  transform: translateX(var(--offset)) translateY(var(--vertical-offset));
+  transform: translateX(var(--fg-offset)) translateY(var(--vertical-offset));
   opacity: 1;
   z-index: 1;
   box-shadow: 0 0 10px black;
+}
+
+::view-transition-new(root) {
+  animation: unset;
+  transform: translateX(var(--bg-offset));
+  opacity: 1;
 }
 
 ::view-transition {
