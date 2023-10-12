@@ -3,8 +3,8 @@ import { Point, findVelocity } from './util.ts';
 // import { fail } from './util.ts';
 
 interface SpringConfig {
-    frequencyResponse : number,
-    dampingRatio : number,
+    frequencyResponse: number,
+    dampingRatio: number,
     name: string, // Debug only.
 }
 
@@ -26,10 +26,10 @@ class Spring {
     name: string;
 
     constructor(springConfig: SpringConfig) {
-        const stiffness = (((2 * Math.PI) / springConfig.frequencyResponse)**2) * this.mass
+        const stiffness = (((2 * Math.PI) / springConfig.frequencyResponse) ** 2) * this.mass
         // this.dampingCoefficient = (4 * Math.PI * springConfig.dampingRatio * this.mass) / springConfig.frequencyResponse;
         this.undampedNaturalFrequency = Math.sqrt(stiffness / this.mass)
-        this.dampedNaturalFrequency = this.undampedNaturalFrequency * Math.sqrt(Math.abs(1 - (springConfig.dampingRatio)**2))
+        this.dampedNaturalFrequency = this.undampedNaturalFrequency * Math.sqrt(Math.abs(1 - (springConfig.dampingRatio) ** 2))
         this.dampingRatio = springConfig.dampingRatio;
         // Used to compute velocity, and check if we're at rest.
         this.lastNFrames = [];
@@ -46,10 +46,10 @@ class Spring {
         const position = Math.exp(-a * time) * (c * Math.sin(b * time) + (d * Math.cos(b * time)));
 
         if (isNaN(position) || !isFinite(position)) {
-            throw("Spring config invalid. Position: " + position);
+            throw ("Spring config invalid. Position: " + position);
         }
         this.lastNFrames.push({
-            offset:position,
+            offset: position,
             time
         });
 
@@ -59,7 +59,7 @@ class Spring {
             this.lastNFrames.shift();
             let sum = 0;
             for (let i of this.lastNFrames) {
-                sum += i.offset*i.offset;
+                sum += i.offset * i.offset;
             }
             done = sum < SPRING_AT_REST_THRESHOLD * SPRING_HISTORY_SIZE;
         }
@@ -76,103 +76,104 @@ class Spring {
 
 // Spring physics inspired by https://medium.com/@patoreyes23/designing-interaction-spring-animations-c8b8788a4b2a .
 export class SpringPhysicsModel extends PhysicsModel {
-  #spring100: Spring;
-  #spring80: Spring;
-  #spring0: Spring;
-  lastRaf: number | null = null;
-  hasCommitted = false;
-  pointerHistory: Point[] = [];
+    #spring100: Spring;
+    #spring80: Spring;
+    #spring0: Spring;
+    lastRaf: number | null = null;
+    hasCommitted = false;
+    pointerHistory: Point[] = [];
 
-  constructor(init:PhysicsModelInit) {
-    super(init);
-    this.animationStartOffset = this.animationStartTime;
-    this.#spring100 = new Spring({
-        frequencyResponse: 500,
-        dampingRatio: 0.95,
-        name: "100%",
-    });
-    this.#spring80 = new Spring({
-        frequencyResponse: 600,
-        dampingRatio: 0.70,
-        name: "80%",
-    });
-    this.#spring0 = new Spring({
-        frequencyResponse: 1000,
-        dampingRatio: 0.95,
-        name: "0%",
-    });
-  }
-
-  updateDisplays() {
-  }
-
-  advance(rafTime: number): AdvanceResult {
-    rafTime = rafTime;
-    if (!this.hasCommitted && this.committed()) {
-        // Switch springs!
-        this.startAnimating(this.lastRaf || rafTime);
-        this.hasCommitted = true;
-        this.#spring100.initialVelocity = this.#spring80.velocity();
-        console.log("VELOCITY HANDOFF: " + this.#spring80.velocity());
+    constructor(init: PhysicsModelInit) {
+        super(init);
+        this.animationStartOffset = this.animationStartTime;
+        this.#spring100 = new Spring({
+            frequencyResponse: 200,
+            dampingRatio: 0.95,
+            name: "100%",
+        });
+        this.#spring80 = new Spring({
+            frequencyResponse: 1600,
+            dampingRatio: 0.80,
+            name: "80%",
+        });
+        this.#spring0 = new Spring({
+            frequencyResponse: 1000,
+            dampingRatio: 0.95,
+            name: "0%",
+        });
     }
-    const time = rafTime - this.animationStartTime;;
 
-    let springResult: SpringPosition | null = null;
-    if (!this.hasCommitted) {
-        springResult = this.#spring80.position(this.maxOffset * 0.8 - this.animationStartOffset, time);
-        console.log(this.#spring80);
-        this.offset = this.maxOffset * 0.8 - springResult.offset;
-    } else {
-        console.log(this.#spring100);
-        springResult = this.#spring100.position(this.maxOffset - this.animationStartOffset, time);
-        this.offset = this.maxOffset - springResult.offset;
+    updateDisplays() {
     }
-    console.log("Offset " + this.offset);
 
-    this.lastRaf = rafTime;
-    return {
-      done: springResult.done && this.hasCommitted,
-      fgOffset: this.offset,
-      bgOffset: this.fgToBgOffset(this.offset)
-    }
-  }
+    advance(rafTime: number): AdvanceResult {
+        rafTime = rafTime;
+        if (!this.hasCommitted && this.committed()) {
+            // Switch springs!
+            this.startAnimating(this.lastRaf || rafTime);
+            this.hasCommitted = true;
+            this.#spring100.initialVelocity = this.#spring80.velocity();
+            console.log("VELOCITY HANDOFF: " + this.#spring80.velocity());
+        }
+        const time = rafTime - this.animationStartTime;;
 
-  pointerMove(e:PointerEvent) : AdvanceResult {
-    this.offset = this.fingerDragAdd(this.offset, e.movementX);
-    this.pointerHistory.push({
-        offset: this.offset,
-        time: e.timeStamp
-    })
-    if (this.pointerHistory.length > 10) {
-        this.pointerHistory.shift();
-    }
-    if (this.offset < 0) {
-      this.offset = 0;
-    }
-    return {
-      done: false,
-      fgOffset: this.offset,
-      bgOffset: this.fgToBgOffset(this.offset)
-    }
-  }
+        let springResult: SpringPosition | null = null;
+        if (!this.hasCommitted) {
+            springResult = this.#spring80.position(this.maxOffset * 0.8 - this.animationStartOffset, time);
+            console.log(this.#spring80);
+            this.offset = this.maxOffset * 0.8 - springResult.offset;
+        } else {
+            console.log(this.#spring100);
+            springResult = this.#spring100.position(this.maxOffset - this.animationStartOffset, time);
+            this.offset = this.maxOffset - springResult.offset;
+        }
+        console.log("Offset " + this.offset);
 
-  fingerDragAdd(offset: number, movement: number): number {
-    if (!this.limitFingerDrag) {
-      return offset + movement;
+        this.lastRaf = rafTime;
+        return {
+            done: springResult.done && this.hasCommitted,
+            fgOffset: this.offset,
+            bgOffset: this.fgToBgOffset(this.offset)
+        }
     }
-    // Linear to 0.8; assumes no "overdrag" like on mobile sim
-    return offset + 0.8 * movement;
-  }
 
-  fgToBgOffset(offset: number): number {
-    if (!this.parallax) {
-      return 0;
+    pointerMove(e: PointerEvent): AdvanceResult {
+        this.offset = this.fingerDragAdd(this.offset, e.movementX);
+        this.pointerHistory.push({
+            offset: this.offset,
+            time: e.timeStamp
+        })
+        if (this.pointerHistory.length > 10) {
+            this.pointerHistory.shift();
+        }
+        if (this.offset < 0) {
+            this.offset = 0;
+        }
+        return {
+            done: false,
+            fgOffset: this.offset,
+            bgOffset: this.fgToBgOffset(this.offset)
+        }
     }
-    return 0.25 * (offset - this.maxOffset);
-  }
 
-  pointerUp(_: PointerEvent): void {
-      this.#spring80.initialVelocity = -findVelocity(this.pointerHistory);
-      console.log("STARTING VELOCITY: " + this.#spring80.initialVelocity);
-  }
+    fingerDragAdd(offset: number, movement: number): number {
+        if (!this.limitFingerDrag) {
+            return offset + movement;
+        }
+        // Linear to 0.8; assumes no "overdrag" like on mobile sim
+        return offset + 0.8 * movement;
+    }
+
+    fgToBgOffset(offset: number): number {
+        if (!this.parallax) {
+            return 0;
+        }
+        return 0.25 * (offset - this.maxOffset);
+    }
+
+    pointerUp(_: PointerEvent): void {
+        // Don't let us overshoot too far. TODO: tune this.
+        this.#spring80.initialVelocity = Math.max(-findVelocity(this.pointerHistory), -1.2);
+        console.log("STARTING VELOCITY: " + this.#spring80.initialVelocity);
+    }
 }
