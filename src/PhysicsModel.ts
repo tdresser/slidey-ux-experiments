@@ -1,13 +1,15 @@
 
 export interface AdvanceResult {
     done: boolean,
-    offset: number,
+    fgOffset: number,
+    bgOffset: number,
 }
 
 export interface PhysicsModelInit {
-    dragStartTime: number,
     networkDelay: number,
     targetOffset: number,
+    parallax: boolean,
+    limitFingerDrag: boolean
 }
 
 export abstract class PhysicsModel {
@@ -16,10 +18,15 @@ export abstract class PhysicsModel {
     networkDelay: number;
     maxOffset: number;
     offset: number = 0;
+    parallax: boolean;
+    limitFingerDrag: boolean;
+
 
     constructor(init: PhysicsModelInit) {
         this.networkDelay = init.networkDelay;
         this.maxOffset = init.targetOffset;
+        this.parallax = init.parallax;
+        this.limitFingerDrag = init.limitFingerDrag;
     }
 
     startAnimating(time: number) {
@@ -28,7 +35,7 @@ export abstract class PhysicsModel {
     }
 
     abstract advance(rafTime: number): AdvanceResult;
-    abstract pointerMove(e:PointerEvent): number;
+    abstract pointerMove(e:PointerEvent): AdvanceResult;
     pointerUp(_:PointerEvent) {}
     abstract updateDisplays(): void;
 

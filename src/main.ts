@@ -1,10 +1,7 @@
 import './style.css'
-import { FrictionPhysicsModel } from './FrictionPhysicsModel.ts'
 import { SpringPhysicsModel } from './SpringPhysicsModel.ts';
 import { PhysicsModel } from './PhysicsModel.ts';
 import { fail } from './util.ts';
-
-let DefaultPhysicsModel = SpringPhysicsModel;
 
 let animationLock: Animation;
 let transition;
@@ -15,6 +12,9 @@ let pointingDown = false;
 const scrim = document.getElementById("scrim") ?? fail();
 const networkDelayInput = document.getElementById("networkDelayInput") as HTMLInputElement ?? fail();
 const networkDelayDisplay = document.getElementById("networkDelayDisplay") as HTMLInputElement ?? fail();
+
+const settingParallax = document.getElementById("settingParallax") as HTMLInputElement ?? fail();
+const settingLimitFingerDrag = document.getElementById("settingLimitFingerDrag") as HTMLInputElement ?? fail();
 
 function randomColor() {
   return "#" + Math.floor(Math.random()*16777215).toString(16);
@@ -50,9 +50,10 @@ function handlePointerMove(e: PointerEvent) {
     return;
   }
 
-  let offset = physicsModel.pointerMove(e);
-  document.documentElement.style.setProperty("--offset", `${offset}px`);
-  document.documentElement.style.setProperty("--scrim", `${offsetToScrimPercent(offset)}`);
+  let moveResult = physicsModel.pointerMove(e);
+  document.documentElement.style.setProperty("--fg-offset", `${moveResult.fgOffset}px`);
+  document.documentElement.style.setProperty("--bg-offset", `${moveResult.bgOffset}px`);
+  document.documentElement.style.setProperty("--scrim", `${offsetToScrimPercent(moveResult.fgOffset)}`);
 }
 
 function handlePointerUp(e: PointerEvent) {
@@ -75,8 +76,9 @@ finishAnimation()
 function advance(rafTime: number, finished: (d?: unknown) => void) {
   const advanceResult = physicsModel.advance(rafTime);
   console.log(advanceResult);
-  document.documentElement.style.setProperty("--offset", `${advanceResult.offset}px`);
-  document.documentElement.style.setProperty("--scrim", `${offsetToScrimPercent(advanceResult.offset)}`);
+  document.documentElement.style.setProperty("--fg-offset", `${advanceResult.fgOffset}px`);
+  document.documentElement.style.setProperty("--bg-offset", `${advanceResult.bgOffset}px`);
+  document.documentElement.style.setProperty("--scrim", `${offsetToScrimPercent(advanceResult.fgOffset)}`);
   if (advanceResult.done) {
     finished();
   } else {
@@ -95,7 +97,7 @@ function startAnimation() {
 function finishAnimation() {
   // Reset stuff.
   animating = false;
-  document.documentElement.style.setProperty("--offset", '0px');
+  document.documentElement.style.setProperty("--fg-offset", '0px');
   document.documentElement.style.setProperty("--vertical-offset", '0px');
   document.documentElement.style.setProperty("--scrim", "0.0");
   if (animationLock) {
@@ -105,10 +107,11 @@ function finishAnimation() {
 }
 
 function initPhysics(): PhysicsModel {
-  return new DefaultPhysicsModel({
-    dragStartTime: performance.now(),
+  return new SpringPhysicsModel({
     networkDelay: parseFloat(networkDelayInput.value),
     targetOffset: document.documentElement.getBoundingClientRect().width,
+    parallax: !!settingParallax.checked,
+    limitFingerDrag: !!settingLimitFingerDrag.checked,
   });
 }
 

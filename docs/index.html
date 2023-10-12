@@ -5,8 +5,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Default Nav Transitions</title>
-  <script type="module" crossorigin src="/slidey-ux-experiments/assets/index-d5e0a05b.js"></script>
-  <link rel="stylesheet" href="/slidey-ux-experiments/assets/index-3671dded.css">
+  <script type="module" crossorigin src="/slidey-ux-experiments/assets/index-6643b6ff.js"></script>
+  <link rel="stylesheet" href="/slidey-ux-experiments/assets/index-666e1d28.css">
 </head>
 
 <body>
@@ -21,6 +21,20 @@
         <h2>network delay: <span id="networkDelayDisplay"></span><span>ms</span></h2>
         <input id="networkDelayInput" type="range" min="0" max="5000" value="200">
         <p>how long to commit</p>
+      </div>
+    </div>
+    <div class="slider-window">
+      <div class="slider-label modes">
+        <h2>Modes</h2>
+        <label class=check-box-label id="label_for_parallax">
+          <input id="settingParallax" type="checkbox" checked>
+          parallax effect
+        </label>
+        <br>
+        <label class=check-box-label id="label_for_limit_finger_drag">
+          <input id="settingLimitFingerDrag" type="checkbox" checked>
+          limit finger drag
+        </label>
       </div>
     </div>
   </div>

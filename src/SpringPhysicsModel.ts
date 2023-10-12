@@ -127,12 +127,13 @@ export class SpringPhysicsModel extends PhysicsModel {
     this.lastRaf = rafTime;
     return {
       done: springResult.done && this.hasCommitted,
-      offset: this.offset,
+      fgOffset: this.offset,
+      bgOffset: this.fgToBgOffset(this.offset)
     }
   }
 
-  pointerMove(e:PointerEvent) : number {
-    this.offset += e.movementX;
+  pointerMove(e:PointerEvent) : AdvanceResult {
+    this.offset = this.fingerDragAdd(this.offset, e.movementX);
     this.pointerHistory.push({
         offset: this.offset,
         time: e.timeStamp
@@ -143,7 +144,26 @@ export class SpringPhysicsModel extends PhysicsModel {
     if (this.offset < 0) {
       this.offset = 0;
     }
-    return this.offset;
+    return {
+      done: false,
+      fgOffset: this.offset,
+      bgOffset: this.fgToBgOffset(this.offset)
+    }
+  }
+
+  fingerDragAdd(offset: number, movement: number): number {
+    if (!this.limitFingerDrag) {
+      return offset + movement;
+    }
+    // Linear to 0.8; assumes no "overdrag" like on mobile sim
+    return offset + 0.8 * movement;
+  }
+
+  fgToBgOffset(offset: number): number {
+    if (!this.parallax) {
+      return 0;
+    }
+    return 0.25 * (offset - this.maxOffset);
   }
 
   pointerUp(_: PointerEvent): void {
