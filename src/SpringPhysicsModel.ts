@@ -148,7 +148,8 @@ export class SpringPhysicsModel extends PhysicsModel {
         return {
             done: springResult.done && this.hasCommitted,
             fgOffset: this.offset,
-            bgOffset: this.fgToBgOffset(this.offset)
+            bgOffset: this.fgToBgOffset(this.offset),
+            hasCommitted: this.hasCommitted
         }
     }
 
@@ -167,7 +168,8 @@ export class SpringPhysicsModel extends PhysicsModel {
         return {
             done: false,
             fgOffset: this.offset,
-            bgOffset: this.fgToBgOffset(this.offset)
+            bgOffset: this.fgToBgOffset(this.offset),
+            hasCommitted: false
         }
     }
 

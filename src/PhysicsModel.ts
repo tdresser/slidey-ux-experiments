@@ -3,6 +3,7 @@ export interface AdvanceResult {
     done: boolean,
     fgOffset: number,
     bgOffset: number,
+    hasCommitted: boolean
 }
 
 export interface PhysicsModelInit {

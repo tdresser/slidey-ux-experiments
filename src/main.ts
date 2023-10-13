@@ -9,6 +9,7 @@ let transition;
 let animating = false;
 let pointingDown = false;
 let aborting = false;
+let hasCommitted = false;
 
 const scrim = document.getElementById("scrim") ?? fail();
 const progress = document.getElementById("progress") ?? fail();
@@ -80,12 +81,14 @@ function updateZoom(offset: number) {
 
     if(offsetAsPercent > 0.5) {
       if(!popped) {
-        document.documentElement.animate([{ '--bg-scale': 0.9 }], { duration: 100, fill: "forwards" });
+        let anim = document.documentElement.animate([{ '--bg-scale': 0.9 }], { duration: 100, fill: "forwards" });
+        anim.finished.then(() => {anim.commitStyles(); anim.cancel();});
         popped = true;
       }
     } else {
       if(popped) {
-        document.documentElement.animate([{ '--bg-scale': 0.8 }], { duration: 100, fill: "forwards" });
+        let anim = document.documentElement.animate([{ '--bg-scale': 0.8 }], { duration: 100, fill: "forwards" });
+        anim.finished.then(() => {anim.commitStyles(); anim.cancel();});
         popped = false;
       }
     }
@@ -97,25 +100,33 @@ function handlePointerUp(e: PointerEvent) {
     return;
   }
   pointingDown = false;
-  let bgScale = 1.0;
-  let fgScale = 0.9;
+  hasCommitted = false;
   const aborted = physicsModel.pointerUp(e) == "abort";
   if (aborted) {
+    animateOnAbort();
     // Reset the color when the animation finished.
     aborting = true;
     seed--;
-    fgScale = 1.0;
-    bgScale = 0.8;
   }
 
   startAnimation().then(() => {
-    if (!!settingZoom.checked) {
-      let anim = document.documentElement.animate([{ '--fg-scale': fgScale, '--bg-scale': bgScale }], { duration: 100, fill: "forwards" });
-      anim.finished.then(() => {anim.commitStyles(); anim.cancel();});
-    }
     let scrimOut = document.documentElement.animate([{ '--scrim': 0 }], { duration: 100 });
     scrimOut.finished.then(finishAnimation);
   });
+}
+
+function animateOnCommit() {
+  if (!!settingZoom.checked) {
+    let anim = document.documentElement.animate([{ '--fg-scale': 0.9, '--bg-scale': 1.0 }], { duration: 100, fill: "forwards" });
+    anim.finished.then(() => {anim.commitStyles(); anim.cancel();});
+  }
+}
+
+function animateOnAbort() {
+  if (!!settingZoom.checked) {
+    let anim = document.documentElement.animate([{ '--fg-scale': 1.0, '--bg-scale': 0.8 }], { duration: 100, fill: "forwards" });
+    anim.finished.then(() => {anim.commitStyles(); anim.cancel();});
+  }
 }
 
 let physicsModel: PhysicsModel = initPhysics();
@@ -130,6 +141,10 @@ function advance(rafTime: number, finished: (d?: unknown) => void) {
   updateZoom(advanceResult.fgOffset);
   if (rafTime-startTime > 800) {
      progress.style.display = "block";
+  }
+  if (advanceResult.hasCommitted && !hasCommitted) {
+    animateOnCommit();
+    hasCommitted = true;
   }
   if (advanceResult.done) {
     finished();
