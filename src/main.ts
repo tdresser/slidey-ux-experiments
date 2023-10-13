@@ -83,6 +83,7 @@ function updateZoom(offset: number) {
 }
 function updatePop(offset:number) {
   if (!!settingZoom.checked) {
+    let offsetAsPercent = offset / document.documentElement.getBoundingClientRect().width;
     if(offsetAsPercent > 0.5) {
       if(!popped) {
         let anim = document.documentElement.animate([{ '--bg-scale': 0.9 }], { duration: 100, fill: "forwards" });
