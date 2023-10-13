@@ -13,12 +13,14 @@ let hasCommitted = false;
 
 const scrim = document.getElementById("scrim") ?? fail();
 const progress = document.getElementById("progress") ?? fail();
+const progressContainer = document.getElementById("progressContainer") ?? fail();
 const networkDelayInput = document.getElementById("networkDelayInput") as HTMLInputElement ?? fail();
 const networkDelayDisplay = document.getElementById("networkDelayDisplay") as HTMLInputElement ?? fail();
 
 const settingParallax = document.getElementById("settingParallax") as HTMLInputElement ?? fail();
 const settingLimitFingerDrag = document.getElementById("settingLimitFingerDrag") as HTMLInputElement ?? fail();
 const settingZoom = document.getElementById("settingZoom") as HTMLInputElement ?? fail();
+const settingProgressAttribution = document.getElementById("settingProgressAttribution") as HTMLInputElement ?? fail();
 
 let lastColor = "lightblue";
 
@@ -213,9 +215,18 @@ function updateDisplays() {
   finishAnimation();
 }
 
+function changeProgressAttribution() {
+  if (settingProgressAttribution.checked) {
+    progressContainer.classList.add("attributed");
+  } else {
+    progressContainer.classList.remove("attributed");
+  }
+}
+
 function init() {
   networkDelayInput.addEventListener("input", updateDisplays);
   settingZoom.addEventListener("change", updateDisplays);
+  settingProgressAttribution.addEventListener("change", changeProgressAttribution);
   updateDisplays();
 
   window.addEventListener("pointerdown", handlePointerDown);
