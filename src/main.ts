@@ -71,6 +71,7 @@ function handlePointerMove(e: PointerEvent) {
   document.documentElement.style.setProperty("--scrim", `${offsetToScrimPercent(moveResult.fgOffset)}`);
 
   updateZoom(moveResult.fgOffset);
+  updatePop(moveResult.fgOffset);
 }
 
 function updateZoom(offset: number) {
@@ -78,7 +79,10 @@ function updateZoom(offset: number) {
     let offsetAsPercent = offset / document.documentElement.getBoundingClientRect().width;
     let fgScale = 1.0 - 0.1 * offsetAsPercent;
     document.documentElement.style.setProperty("--fg-scale", `${fgScale}`);
-
+  }
+}
+function updatePop(offset:number) {
+  if (!!settingZoom.checked) {
     if(offsetAsPercent > 0.5) {
       if(!popped) {
         let anim = document.documentElement.animate([{ '--bg-scale': 0.9 }], { duration: 100, fill: "forwards" });
