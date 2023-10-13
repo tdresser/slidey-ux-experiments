@@ -150,6 +150,19 @@ body {
   opacity: 1;
   z-index: 0;
 }
+
+::view-transition-group(progress) {
+  z-index: 999;
+}
+::view-transition-old(progress) {
+  animation: unset;
+  opacity: 0;
+}
+::view-transition-new(progress) {
+  animation: unset;
+  opacity: 1;
+}
+
 #scrim {
   position: absolute;
   inset: 0;
@@ -163,30 +176,45 @@ body {
   flex-grow: 1;
 }
 
-  fieldset {
-    border:0;
-  }
+fieldset {
+  border:0;
+}
 
-  /* TODO: this styling is redundant with some of the slider styling. */
-  #mode_window {
-    text-align: left;
-    color:white;
-  }
+/* TODO: this styling is redundant with some of the slider styling. */
+#mode_window {
+  text-align: left;
+  color:white;
+}
 
-  #mode_window h2 {
-    text-align:center;
-    padding:0;
-  }
+#mode_window h2 {
+  text-align:center;
+  padding:0;
+}
+
+:root {
+  --progress-height: 5px;
+}
+
+.progress-container {
+  view-transition-name: progress;
+  top: -1px;
+  left: 0;
+  right: 0;
+  position: absolute;
+  height: var(--progress-height);
+  background: lightgray;
+}
 
 .pure-material-progress-linear {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    border: none;
-    height: 0.25em;
+    height: var(--progress-height);
     color: rgb(var(--pure-material-primary-rgb, 33, 150, 243));
     background-color: rgba(var(--pure-material-primary-rgb, 33, 150, 243), 0.12);
-    font-size: 16px;
+    border: 1px solid lightgray;
+    top: -1px;
+    vertical-align: top;
 }
 
 .pure-material-progress-linear::-webkit-progress-bar {
