@@ -60,6 +60,12 @@ class Spring {
             }
             done = sum < SPRING_AT_REST_THRESHOLD * SPRING_HISTORY_SIZE;
         }
+        
+        // consider it done when back at 0 for the abort case
+        if(position < 1) {
+            done = true;
+        }
+        
         return {
             offset: position,
             done: done
@@ -146,7 +152,7 @@ export class SpringPhysicsModel extends PhysicsModel {
 
         this.lastRaf = rafTime;
         return {
-            done: springResult.done && this.hasCommitted,
+            done: springResult.done && (this.hasCommitted || this.hasAborted),
             fgOffset: this.offset,
             bgOffset: this.fgToBgOffset(this.offset),
             hasCommitted: this.hasCommitted
