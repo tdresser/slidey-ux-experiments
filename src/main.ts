@@ -17,6 +17,7 @@ const networkDelayDisplay = document.getElementById("networkDelayDisplay") as HT
 
 const settingParallax = document.getElementById("settingParallax") as HTMLInputElement ?? fail();
 const settingLimitFingerDrag = document.getElementById("settingLimitFingerDrag") as HTMLInputElement ?? fail();
+const settingZoom = document.getElementById("settingZoom") as HTMLInputElement ?? fail();
 
 let lastColor = "lightblue";
 
@@ -56,6 +57,8 @@ function offsetToScrimPercent(offset:number) {
   return 0.3 + (1 - offsetAsPercent) * 0.5;
 }
 
+let popped = false;
+
 function handlePointerMove(e: PointerEvent) {
   if (!pointingDown) {
     return;
@@ -65,6 +68,28 @@ function handlePointerMove(e: PointerEvent) {
   document.documentElement.style.setProperty("--fg-offset", `${moveResult.fgOffset}px`);
   document.documentElement.style.setProperty("--bg-offset", `${moveResult.bgOffset}px`);
   document.documentElement.style.setProperty("--scrim", `${offsetToScrimPercent(moveResult.fgOffset)}`);
+
+  updateZoom(moveResult.fgOffset);
+}
+
+function updateZoom(offset: number) {
+  if (!!settingZoom.checked) {
+    let offsetAsPercent = offset / document.documentElement.getBoundingClientRect().width;
+    let fgScale = 1.0 - 0.1 * offsetAsPercent;
+    document.documentElement.style.setProperty("--fg-scale", `${fgScale}`);
+
+    if(offsetAsPercent > 0.5) {
+      if(!popped) {
+        document.documentElement.animate([{ '--bg-scale': 0.9 }], { duration: 100, fill: "forwards" });
+        popped = true;
+      }
+    } else {
+      if(popped) {
+        document.documentElement.animate([{ '--bg-scale': 0.8 }], { duration: 100, fill: "forwards" });
+        popped = false;
+      }
+    }
+  }
 }
 
 function handlePointerUp(e: PointerEvent) {
@@ -72,14 +97,22 @@ function handlePointerUp(e: PointerEvent) {
     return;
   }
   pointingDown = false;
+  let bgScale = 1.0;
+  let fgScale = 0.9;
   const aborted = physicsModel.pointerUp(e) == "abort";
   if (aborted) {
     // Reset the color when the animation finished.
     aborting = true;
     seed--;
+    fgScale = 1.0;
+    bgScale = 0.8;
   }
 
   startAnimation().then(() => {
+    if (!!settingZoom.checked) {
+      let anim = document.documentElement.animate([{ '--fg-scale': fgScale, '--bg-scale': bgScale }], { duration: 100, fill: "forwards" });
+      anim.finished.then(() => {anim.commitStyles(); anim.cancel();});
+    }
     let scrimOut = document.documentElement.animate([{ '--scrim': 0 }], { duration: 100 });
     scrimOut.finished.then(finishAnimation);
   });
@@ -94,6 +127,7 @@ function advance(rafTime: number, finished: (d?: unknown) => void) {
   document.documentElement.style.setProperty("--fg-offset", `${advanceResult.fgOffset}px`);
   document.documentElement.style.setProperty("--bg-offset", `${advanceResult.bgOffset}px`);
   document.documentElement.style.setProperty("--scrim", `${offsetToScrimPercent(advanceResult.fgOffset)}`);
+  updateZoom(advanceResult.fgOffset);
   if (rafTime-startTime > 800) {
      progress.style.display = "block";
   }
@@ -119,6 +153,8 @@ function finishAnimation() {
   document.documentElement.style.setProperty("--fg-offset", '0px');
   document.documentElement.style.setProperty("--vertical-offset", '0px');
   document.documentElement.style.setProperty("--scrim", "0.0");
+  document.documentElement.style.setProperty("--bg-scale", !!settingZoom.checked ? "0.8":"1.0");  
+  document.documentElement.style.setProperty("--fg-scale", "1.0");
 
   if (aborting) {
     document.documentElement.style.setProperty("--main-background-color", lastColor);
