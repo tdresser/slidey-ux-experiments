@@ -18,12 +18,13 @@ let animatingScrim = false;
 const scrim = document.getElementById("scrim") ?? fail();
 const progress = document.getElementById("progress") ?? fail();
 const progressContainer = document.getElementById("progressContainer") ?? fail();
-const progress_bar = document.getElementById("progress_bar") ?? fail();
+const progress_bar = document.getElementById("progress_bar") as HTMLProgressElement ?? fail();
 const networkDelayInput = document.getElementById("networkDelayInput") as HTMLInputElement ?? fail();
 const networkDelayDisplay = document.getElementById("networkDelayDisplay") as HTMLInputElement ?? fail();
 const networkDelayLoadInput = document.getElementById("networkDelayLoadInput") as HTMLInputElement ?? fail();
 const networkDelayLoadDisplay = document.getElementById("networkDelayLoadDisplay") as HTMLInputElement ?? fail();
 
+const settingLoadProgressBar = document.getElementById("settingLoadProgressBar") as HTMLInputElement ?? fail();
 const settingParallax = document.getElementById("settingParallax") as HTMLInputElement ?? fail();
 const settingLimitFingerDrag = document.getElementById("settingLimitFingerDrag") as HTMLInputElement ?? fail();
 const settingZoom = document.getElementById("settingZoom") as HTMLInputElement ?? fail();
@@ -258,7 +259,7 @@ function finishAllAnimation() {
 
 function initPhysics(): PhysicsModel {
   return new SpringPhysicsModel({
-    networkDelay: bucket[parseInt(networkDelayInput.value)].toString(),
+    networkDelay: bucket[parseInt(networkDelayInput.value)],
     targetOffset: document.documentElement.getBoundingClientRect().width,
     parallax: !!settingParallax.checked,
     limitFingerDrag: !!settingLimitFingerDrag.checked,
@@ -266,8 +267,8 @@ function initPhysics(): PhysicsModel {
 }
 
 function updateDisplays() {
-  networkDelayDisplay.innerHTML = bucket[parseInt(networkDelayInput.value)];
-  networkDelayLoadDisplay.innerHTML = delayToFullLoadMs();
+  networkDelayDisplay.innerHTML = bucket[parseInt(networkDelayInput.value)].toString();
+  networkDelayLoadDisplay.innerHTML = delayToFullLoadMs().toString();
 
   physicsModel.updateDisplays();
 
