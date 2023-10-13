@@ -204,6 +204,7 @@ function updateDisplays() {
 
 function init() {
   networkDelayInput.addEventListener("input", updateDisplays);
+  settingZoom.addEventListener("change", updateDisplays);
   updateDisplays();
 
   window.addEventListener("pointerdown", handlePointerDown);
