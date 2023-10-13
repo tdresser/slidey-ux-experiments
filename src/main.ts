@@ -11,11 +11,18 @@ let pointingDown = false;
 let aborting = false;
 let hasCommitted = false;
 
+// Tracking post commit animations.
+let animatingLoadingBar = false;
+let animatingScrim = false;
+
 const scrim = document.getElementById("scrim") ?? fail();
 const progress = document.getElementById("progress") ?? fail();
 const progressContainer = document.getElementById("progressContainer") ?? fail();
+const progress_bar = document.getElementById("progress_bar") ?? fail();
 const networkDelayInput = document.getElementById("networkDelayInput") as HTMLInputElement ?? fail();
 const networkDelayDisplay = document.getElementById("networkDelayDisplay") as HTMLInputElement ?? fail();
+const networkDelayLoadInput = document.getElementById("networkDelayLoadInput") as HTMLInputElement ?? fail();
+const networkDelayLoadDisplay = document.getElementById("networkDelayLoadDisplay") as HTMLInputElement ?? fail();
 
 const settingParallax = document.getElementById("settingParallax") as HTMLInputElement ?? fail();
 const settingLimitFingerDrag = document.getElementById("settingLimitFingerDrag") as HTMLInputElement ?? fail();
@@ -26,6 +33,8 @@ const settingProgressAttribution = document.getElementById("settingProgressAttri
 let lastColor = "lightblue";
 
 let startTime = 0;
+let commitTime = 0;
+let loadTime = 0;
 
 let bucket = [50, 100, 300, 600, 1200, 2500]; 
 
@@ -41,6 +50,12 @@ function getBackgroundColorForNextPage() {
   if (!!settingBackground.checked)
     return "white";
   return randomColor();
+}
+
+function delayToFullLoadMs() {
+  let commitDelay = bucket[parseInt(networkDelayInput.value)];
+  let loadDelay = bucket[parseInt(networkDelayLoadInput.value)];
+  return Math.max(commitDelay, loadDelay);
 }
 
 function handlePointerDown(e: PointerEvent) {
@@ -125,10 +140,7 @@ function handlePointerUp(e: PointerEvent) {
     seed--;
   }
 
-  startAnimation().then(() => {
-    let scrimOut = document.documentElement.animate([{ '--scrim': 0 }], { duration: 100 });
-    scrimOut.finished.then(finishAnimation);
-  });
+  startAnimation().then(animatePostCommitOrAbort);
 }
 
 function animateOnCommit() {
@@ -145,9 +157,35 @@ function animateOnAbort() {
   }
 }
 
-let physicsModel: PhysicsModel = initPhysics();
+function animatePostCommitOrAbort() {
+  // scrim animation for screenshot to live, defaults to 100ms.
+  animatingScrim = true;
+  let scrimOut = document.documentElement.animate([{ '--scrim': 0 }], { duration: 100 });
+  scrimOut.finished.then(finishScrimAnimation);
 
-finishAnimation()
+  animatingLoadingBar = !!settingLoadProgressBar.checked && !aborting;
+  if (animatingLoadingBar) {
+    animateLoadingProgressBar();
+  } else {
+    finishLoadingBarAnimation();
+  }
+}
+
+function animateLoadingProgressBar() {
+  let currentTime = performance.now();
+  if (currentTime >= loadTime) {
+    finishLoadingBarAnimation();
+    return;
+  }
+
+  progress.style.display = "block";
+  progress_bar.max = loadTime - startTime;
+  progress_bar.value = currentTime - startTime;
+  requestAnimationFrame(animateLoadingProgressBar);
+}
+
+let physicsModel: PhysicsModel = initPhysics();
+finishAllAnimation();
 
 function advance(rafTime: number, finished: (d?: unknown) => void) {
   const advanceResult = physicsModel.advance(rafTime);
@@ -172,15 +210,17 @@ function advance(rafTime: number, finished: (d?: unknown) => void) {
 function startAnimation() {
   animating = true;
   startTime = performance.now();
+  commitTime = startTime + parseFloat(networkDelayInput.value);
+  loadTime = startTime + delayToFullLoadMs();
+  console.log("start : " + startTime + " commit : " + commitTime + " load : " + loadTime);
   physicsModel.startAnimating(startTime);
   return new Promise(resolve => {
     advance(performance.now(), resolve);
   });
 }
 
-function finishAnimation() {
-  // Reset stuff.
-  animating = false;
+function finishScrimAnimation() {
+  animatingScrim = false;
   document.documentElement.style.setProperty("--fg-offset", '0px');
   document.documentElement.style.setProperty("--vertical-offset", '0px');
   document.documentElement.style.setProperty("--scrim", "0.0");
@@ -196,7 +236,24 @@ function finishAnimation() {
     animationLock.play();
   }
   scrim.style.display = "none";
+
+  if (!animatingLoadingBar)
+    animating = false;
+}
+
+function finishLoadingBarAnimation() {
+  animatingLoadingBar = false;
   progress.style.display = "none";
+  progress_bar.removeAttribute('value');
+  progress_bar.removeAttribute('max');
+
+  if (!animatingScrim)
+    animating = false;
+}
+
+function finishAllAnimation() {
+  finishScrimAnimation();
+  finishLoadingBarAnimation();
 }
 
 function initPhysics(): PhysicsModel {
@@ -210,12 +267,13 @@ function initPhysics(): PhysicsModel {
 
 function updateDisplays() {
   networkDelayDisplay.innerHTML = bucket[parseInt(networkDelayInput.value)];
+  networkDelayLoadDisplay.innerHTML = delayToFullLoadMs();
 
   physicsModel.updateDisplays();
 
   // This is a bit overkill, but with mode switching, these were sometimes getting out of sync.
   physicsModel = initPhysics();
-  finishAnimation();
+  finishAllAnimation();
 }
 
 function changeProgressAttribution() {
@@ -228,6 +286,7 @@ function changeProgressAttribution() {
 
 function init() {
   networkDelayInput.addEventListener("input", updateDisplays);
+  networkDelayLoadInput.addEventListener("input", updateDisplays);
   settingZoom.addEventListener("change", updateDisplays);
   settingProgressAttribution.addEventListener("change", changeProgressAttribution);
   updateDisplays();

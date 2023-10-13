@@ -11,7 +11,7 @@
   <div id="scrim" style="display: none"></div>
   <div id=progressContainer class="progress-container attributed">
     <div id="progress" style="display:none">
-      <progress style="width:100%" class="pure-material-progress-linear"/>
+      <progress id="progress_bar" style="width:100%" class="pure-material-progress-linear"/>
     </div>
   </div>
   <div class="slider-container">
@@ -20,9 +20,14 @@
     </div>
     <div class="slider-window">
       <div class="slider-label">
-        <h2>network delay: <span id="networkDelayDisplay"></span><span>ms</span></h2>
+        <h2>commit network delay: <span id="networkDelayDisplay"></span><span>ms</span></h2>
         <input id="networkDelayInput" type="range" min="0" max="5" value="2">
         <p>how long to commit</p>
+      </div>
+      <div class="slider-label">
+        <h2>load network delay: <span id="networkDelayLoadDisplay"></span><span>ms</span></h2>
+        <input id="networkDelayLoadInput" type="range" min="0" max="5" value="2">
+        <p>how long to full page load</p>
       </div>
     </div>
     <div class="slider-window">
@@ -48,6 +53,10 @@
         <label class=check-box-label id="label_for_progress_attribution">
           <input id="settingProgressAttribution" type="checkbox" checked>
           attribute progress bar to page
+        </label>
+        <label class=check-box-label id="label_for_load_progress_bar">
+          <input id="settingLoadProgressBar" type="checkbox" checked>
+          loading progress bar
         </label>
       </div>
     </div>

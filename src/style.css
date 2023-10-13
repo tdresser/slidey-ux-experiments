@@ -227,18 +227,15 @@ fieldset {
 /* Determinate */
 .pure-material-progress-linear::-webkit-progress-value {
     background-color: currentColor;
-    transition: all 0.2s;
 }
 
 .pure-material-progress-linear::-moz-progress-bar {
     background-color: currentColor;
-    transition: all 0.2s;
 }
 
 .pure-material-progress-linear::-ms-fill {
     border: none;
     background-color: currentColor;
-    transition: all 0.2s;
 }
 
 /* Indeterminate */
