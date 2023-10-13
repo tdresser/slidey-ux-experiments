@@ -11,6 +11,7 @@ let pointingDown = false;
 let aborting = false;
 
 const scrim = document.getElementById("scrim") ?? fail();
+const progress = document.getElementById("progress") ?? fail();
 const networkDelayInput = document.getElementById("networkDelayInput") as HTMLInputElement ?? fail();
 const networkDelayDisplay = document.getElementById("networkDelayDisplay") as HTMLInputElement ?? fail();
 
@@ -18,6 +19,8 @@ const settingParallax = document.getElementById("settingParallax") as HTMLInputE
 const settingLimitFingerDrag = document.getElementById("settingLimitFingerDrag") as HTMLInputElement ?? fail();
 
 let lastColor = "lightblue";
+
+let startTime = 0;
 
 // We want to generate the same color if you try swiping back but then abort multiple times in a row.
 let seed = 100;
@@ -91,6 +94,9 @@ function advance(rafTime: number, finished: (d?: unknown) => void) {
   document.documentElement.style.setProperty("--fg-offset", `${advanceResult.fgOffset}px`);
   document.documentElement.style.setProperty("--bg-offset", `${advanceResult.bgOffset}px`);
   document.documentElement.style.setProperty("--scrim", `${offsetToScrimPercent(advanceResult.fgOffset)}`);
+  if (rafTime-startTime > 800) {
+     progress.style.display = "block";
+  }
   if (advanceResult.done) {
     finished();
   } else {
@@ -100,7 +106,8 @@ function advance(rafTime: number, finished: (d?: unknown) => void) {
 
 function startAnimation() {
   animating = true;
-  physicsModel.startAnimating(performance.now());
+  startTime = performance.now();
+  physicsModel.startAnimating(startTime);
   return new Promise(resolve => {
     advance(performance.now(), resolve);
   });
@@ -122,6 +129,7 @@ function finishAnimation() {
     animationLock.play();
   }
   scrim.style.display = "none";
+  progress.style.display = "none";
 }
 
 function initPhysics(): PhysicsModel {
