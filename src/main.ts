@@ -32,6 +32,12 @@ function randomColor() {
   return "#" + Math.floor(rand*16777215).toString(16);
 }
 
+function getBackgroundColorForNextPage() {
+  if (!!settingBackground.checked)
+    return "white";
+  return randomColor();
+}
+
 function handlePointerDown(e: PointerEvent) {
   if ((e.target as HTMLElement)?.id != "" || animating) {
     return;
@@ -43,7 +49,7 @@ function handlePointerDown(e: PointerEvent) {
   transition = document.startViewTransition();
   transition.ready.then(() => {
     lastColor = document.documentElement.style.getPropertyValue("--main-background-color");
-    document.documentElement.style.setProperty("--main-background-color", randomColor());
+    document.documentElement.style.setProperty("--main-background-color", getBackgroundColorForNextPage());
     animationLock = document.documentElement.animate({}, {
       duration: 0,
       pseudoElement: '::view-transition-new(root)',
