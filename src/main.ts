@@ -20,6 +20,7 @@ const networkDelayDisplay = document.getElementById("networkDelayDisplay") as HT
 const settingParallax = document.getElementById("settingParallax") as HTMLInputElement ?? fail();
 const settingLimitFingerDrag = document.getElementById("settingLimitFingerDrag") as HTMLInputElement ?? fail();
 const settingZoom = document.getElementById("settingZoom") as HTMLInputElement ?? fail();
+const settingBackground = document.getElementById("settingBackground") as HTMLInputElement ?? fail();
 const settingProgressAttribution = document.getElementById("settingProgressAttribution") as HTMLInputElement ?? fail();
 
 let lastColor = "lightblue";
