@@ -22,6 +22,9 @@ let lastColor = "lightblue";
 
 let startTime = 0;
 
+let buckets = ["P25","P50","P75","P90","P95","P99"];
+let times = [31,101,328,665,1003,2358];
+
 // We want to generate the same color if you try swiping back but then abort multiple times in a row.
 let seed = 100;
 function randomColor() {
@@ -134,7 +137,7 @@ function finishAnimation() {
 
 function initPhysics(): PhysicsModel {
   return new SpringPhysicsModel({
-    networkDelay: parseFloat(networkDelayInput.value),
+    networkDelay: times[parseInt(networkDelayInput.value)],
     targetOffset: document.documentElement.getBoundingClientRect().width,
     parallax: !!settingParallax.checked,
     limitFingerDrag: !!settingLimitFingerDrag.checked,
@@ -142,7 +145,9 @@ function initPhysics(): PhysicsModel {
 }
 
 function updateDisplays() {
-  networkDelayDisplay.innerHTML = networkDelayInput.value;
+  let bucket = parseInt(networkDelayInput.value);
+  console.log(bucket);
+  networkDelayDisplay.innerHTML = buckets[bucket] + "=" + times[bucket];
 
   physicsModel.updateDisplays();
 
