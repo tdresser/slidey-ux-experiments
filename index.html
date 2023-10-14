@@ -42,10 +42,6 @@
           <input id="settingLimitFingerDrag" type="checkbox" checked>
           limit finger drag
         </label>
-        <label class=check-box-label id="label_for_zoom">
-          <input id="settingZoom" type="checkbox">
-          zoom
-        </label>
         <label class=check-box-label id="label_for_background">
           <input id="settingBackground" type="checkbox">
           white background only
@@ -67,6 +63,12 @@
 
         <h3>80% Spring Damping Ratio: <span id="spring80DampingRatioDisplay"></span></h3>
         <input id="spring80DampingRatio" type="range" min="0.8" max="1.2" value="0.8" step="0.01">
+      </div>
+    </div>
+    <div class="slider-window">
+      <div class="slider-label">
+        <h2>zoom: <span id="zoomDisplay">&#37;</span></h2>
+        <input id="settingZoom" type="range" min="60" max="100" value="100" step="5">
       </div>
     </div>
   </div>

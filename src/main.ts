@@ -23,6 +23,7 @@ const networkDelayInput = document.getElementById("networkDelayInput") as HTMLIn
 const networkDelayDisplay = document.getElementById("networkDelayDisplay") as HTMLInputElement ?? fail();
 const networkDelayLoadInput = document.getElementById("networkDelayLoadInput") as HTMLInputElement ?? fail();
 const networkDelayLoadDisplay = document.getElementById("networkDelayLoadDisplay") as HTMLInputElement ?? fail();
+const zoomDisplay = document.getElementById("zoomDisplay") as HTMLInputElement ?? fail();
 
 const settingLoadProgressBar = document.getElementById("settingLoadProgressBar") as HTMLInputElement ?? fail();
 const settingParallax = document.getElementById("settingParallax") as HTMLInputElement ?? fail();
@@ -38,6 +39,9 @@ let commitTime = 0;
 let loadTime = 0;
 
 let bucket = [50, 100, 300, 600, 1200, 2500]; 
+
+let zoom = 1.0;
+let pop = 1.0;
 
 // We want to generate the same color if you try swiping back but then abort multiple times in a row.
 let seed = 100;
@@ -102,27 +106,23 @@ function handlePointerMove(e: PointerEvent) {
 }
 
 function updateZoom(offset: number) {
-  if (!!settingZoom.checked) {
-    let offsetAsPercent = offset / document.documentElement.getBoundingClientRect().width;
-    let fgScale = 1.0 - 0.1 * offsetAsPercent;
-    document.documentElement.style.setProperty("--fg-scale", `${fgScale}`);
-  }
+  let offsetAsPercent = offset / document.documentElement.getBoundingClientRect().width;
+  let fgScale = 1.0 - (1.0 - pop) * offsetAsPercent;
+  document.documentElement.style.setProperty("--fg-scale", `${fgScale}`);
 }
 function updatePop(offset:number) {
-  if (!!settingZoom.checked) {
-    let offsetAsPercent = offset / document.documentElement.getBoundingClientRect().width;
-    if(offsetAsPercent > 0.5) {
-      if(!popped) {
-        let anim = document.documentElement.animate([{ '--bg-scale': 0.9 }], { duration: 100, fill: "forwards" });
-        anim.finished.then(() => {anim.commitStyles(); anim.cancel();});
-        popped = true;
-      }
-    } else {
-      if(popped) {
-        let anim = document.documentElement.animate([{ '--bg-scale': 0.8 }], { duration: 100, fill: "forwards" });
-        anim.finished.then(() => {anim.commitStyles(); anim.cancel();});
-        popped = false;
-      }
+  let offsetAsPercent = offset / document.documentElement.getBoundingClientRect().width;
+  if(offsetAsPercent > 0.5) {
+    if(!popped) {
+      let anim = document.documentElement.animate([{ '--bg-scale': pop }], { duration: 100, fill: "forwards" });
+      anim.finished.then(() => {anim.commitStyles(); anim.cancel();});
+      popped = true;
+    }
+  } else {
+    if(popped) {
+      let anim = document.documentElement.animate([{ '--bg-scale': zoom }], { duration: 100, fill: "forwards" });
+      anim.finished.then(() => {anim.commitStyles(); anim.cancel();});
+      popped = false;
     }
   }
 }
@@ -145,17 +145,13 @@ function handlePointerUp(e: PointerEvent) {
 }
 
 function animateOnCommit() {
-  if (!!settingZoom.checked) {
-    let anim = document.documentElement.animate([{ '--fg-scale': 0.9, '--bg-scale': 1.0 }], { duration: 100, fill: "forwards" });
-    anim.finished.then(() => {anim.commitStyles(); anim.cancel();});
-  }
+  let anim = document.documentElement.animate([{ '--fg-scale': pop, '--bg-scale': 1.0 }], { duration: 100, fill: "forwards" });
+  anim.finished.then(() => {anim.commitStyles(); anim.cancel();});
 }
 
 function animateOnAbort() {
-  if (!!settingZoom.checked) {
-    let anim = document.documentElement.animate([{ '--fg-scale': 1.0, '--bg-scale': 0.8 }], { duration: 100, fill: "forwards" });
-    anim.finished.then(() => {anim.commitStyles(); anim.cancel();});
-  }
+  let anim = document.documentElement.animate([{ '--fg-scale': 1.0, '--bg-scale': zoom }], { duration: 100, fill: "forwards" });
+  anim.finished.then(() => {anim.commitStyles(); anim.cancel();});
 }
 
 function animatePostCommitOrAbort() {
@@ -225,7 +221,7 @@ function finishScrimAnimation() {
   document.documentElement.style.setProperty("--fg-offset", '0px');
   document.documentElement.style.setProperty("--vertical-offset", '0px');
   document.documentElement.style.setProperty("--scrim", "0.0");
-  document.documentElement.style.setProperty("--bg-scale", !!settingZoom.checked ? "0.8":"1.0");  
+  document.documentElement.style.setProperty("--bg-scale", zoom.toString());  
   document.documentElement.style.setProperty("--fg-scale", "1.0");
 
   if (aborting) {
@@ -269,6 +265,9 @@ function initPhysics(): PhysicsModel {
 function updateDisplays() {
   networkDelayDisplay.innerHTML = bucket[parseInt(networkDelayInput.value)].toString();
   networkDelayLoadDisplay.innerHTML = delayToFullLoadMs().toString();
+  zoom = parseInt(settingZoom.value)/100.0;
+  pop = zoom + (1.0 - zoom)/3; // 1/3 betwen zoom to 1.0
+  zoomDisplay.innerHTML = settingZoom.value.toString();
 
   physicsModel.updateDisplays();
 
@@ -288,7 +287,7 @@ function changeProgressAttribution() {
 function init() {
   networkDelayInput.addEventListener("input", updateDisplays);
   networkDelayLoadInput.addEventListener("input", updateDisplays);
-  settingZoom.addEventListener("change", updateDisplays);
+  settingZoom.addEventListener("input", updateDisplays);
   settingProgressAttribution.addEventListener("change", changeProgressAttribution);
   updateDisplays();
 
