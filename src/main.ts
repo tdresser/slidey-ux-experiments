@@ -31,6 +31,7 @@ const settingLimitFingerDrag = document.getElementById("settingLimitFingerDrag")
 const settingZoom = document.getElementById("settingZoom") as HTMLInputElement ?? fail();
 const settingBackground = document.getElementById("settingBackground") as HTMLInputElement ?? fail();
 const settingProgressAttribution = document.getElementById("settingProgressAttribution") as HTMLInputElement ?? fail();
+const settingUnloadHandler = document.getElementById("settingUnloadHandler") as HTMLInputElement ?? fail();
 
 let lastColor = "lightblue";
 
@@ -134,11 +135,34 @@ function handlePointerUp(e: PointerEvent) {
   pointingDown = false;
   hasCommitted = false;
   const aborted = physicsModel.pointerUp(e) == "abort";
+
   if (aborted) {
     animateOnAbort();
     // Reset the color when the animation finished.
     aborting = true;
     seed--;
+  } else if (settingUnloadHandler.checked) {
+    let offset = document.documentElement.style.getPropertyValue("--fg-offset");
+    let scale = document.documentElement.style.getPropertyValue("--fg-scale");
+    let p20 = document.documentElement.getBoundingClientRect().width * 10 / 100;
+    let anim = document.documentElement.animate([{ '--fg-scale': 1.0, '--fg-offset': p20 + 'px' }], { duration: 300, fill: "forwards" });
+    anim.finished.then(() => {
+      anim.commitStyles(); 
+      anim.cancel();
+      if(window.confirm("are you sure you want to leave this page?  It's very nice.")) {
+        let anim = document.documentElement.animate([{ '--fg-scale': scale, '--fg-offset': offset }], { duration: 200, fill: "forwards" });
+        anim.finished.then(() => {
+          anim.commitStyles(); 
+          anim.cancel();
+          animateOnAbort();
+          // Reset the color when the animation finished.
+          aborting = true;
+          seed--;
+          startAnimation().then(animatePostCommitOrAbort);      
+        });  
+      }
+    });
+    return;  
   }
 
   startAnimation().then(animatePostCommitOrAbort);
