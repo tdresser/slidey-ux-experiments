@@ -5,6 +5,7 @@ interface SpringConfig {
     frequencyResponse: number,
     dampingRatio: number,
     name: string, // Debug only.
+    overshootCurve?: (x:number) => number,
 }
 
 interface SpringPosition {
@@ -23,6 +24,7 @@ class Spring {
     dampedNaturalFrequency: number;
     lastNFrames: Point[];
     name: string;
+    overshootCurve = (x:number) => x;
 
     constructor(springConfig: SpringConfig) {
         const stiffness = (((2 * Math.PI) / springConfig.frequencyResponse) ** 2) * this.mass
@@ -33,6 +35,9 @@ class Spring {
         // Used to compute velocity, and check if we're at rest.
         this.lastNFrames = [];
         this.name = springConfig.name;
+        if (springConfig.overshootCurve) {
+            this.overshootCurve = springConfig.overshootCurve;
+        }
     }
 
     position(startPosition: number, time: number): SpringPosition {
@@ -40,7 +45,11 @@ class Spring {
         const b = this.dampedNaturalFrequency
         const c = (this.initialVelocity + a * startPosition) / b
         const d = startPosition
-        const position = Math.exp(-a * time) * (c * Math.sin(b * time) + (d * Math.cos(b * time)));
+        let position = Math.exp(-a * time) * (c * Math.sin(b * time) + (d * Math.cos(b * time)));
+
+        if (position < 0) {
+            position = this.overshootCurve(position);
+        }
 
         if (isNaN(position) || !isFinite(position)) {
             throw ("Spring config invalid. Position: " + position);
@@ -60,12 +69,12 @@ class Spring {
             }
             done = sum < SPRING_AT_REST_THRESHOLD * SPRING_HISTORY_SIZE;
         }
-        
+
         // consider it done when back at 0 for the abort case
         if(position < 1) {
             done = true;
         }
-        
+
         return {
             offset: position,
             done: done
@@ -108,12 +117,18 @@ export class SpringPhysicsModel extends PhysicsModel {
             dampingRatio: 0.95,
             name: "100%",
         });
+        const distanceFactorToMaxOvershoot = 0.5;
+        const maxOvershootFactor = 0.15;
         this.#spring80 = new Spring({
             frequencyResponse: this.spring80FrequencyResponse,
             dampingRatio: this.spring80DampingRatio,
             name: "80%",
+            // 1-1/(x+1)
+            overshootCurve: function (x) {
+                const percent = Math.min(1, -x / (init.targetOffset * distanceFactorToMaxOvershoot));
+                return -init.targetOffset * maxOvershootFactor * (1 - 1/(percent + 1));
+            }
         });
-        console.log(this.#spring80);
         this.#spring0 = new Spring({
             frequencyResponse: 200,
             dampingRatio: 0.9,
@@ -122,7 +137,6 @@ export class SpringPhysicsModel extends PhysicsModel {
     }
 
     updateDisplays() {
-        console.log(this.spring80FrequencyResponseInput.value);
         this.spring80FrequencyResponseDisplay.innerHTML = this.spring80FrequencyResponseInput.value;
         this.spring80DampingRatioDisplay.innerHTML = this.spring80DampingRatioInput.value;
     }
@@ -196,12 +210,11 @@ export class SpringPhysicsModel extends PhysicsModel {
 
     pointerUp(_: PointerEvent): "success" | "abort" {
         // Don't let us overshoot too far. TODO: tune this.
-        const velocity = -Math.max(-findVelocity(this.pointerHistory), -1.2);
+        let velocity = findVelocity(this.pointerHistory);
+        velocity = Math.min(velocity, 2.0);
 
         // TODO: we could use the event position (but maybe it's already sent via a prior touchmove?)
         // If the offset + 100ms at current velocity < threshold, abort.
-        console.log("offset", this.offset);
-        console.log("velocity", velocity);
         if (((this.offset + velocity * 100) / this.maxOffset) < 0.3) {
             this.hasAborted = true;
             this.#spring0.initialVelocity = -velocity
