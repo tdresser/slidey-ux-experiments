@@ -39,17 +39,20 @@ let startTime = 0;
 let commitTime = 0;
 let loadTime = 0;
 
-let bucket = [50, 100, 300, 600, 1200, 2500]; 
+let bucket = [50, 100, 300, 600, 1200, 2500];
 
 let zoom = 1.0;
 let pop = 1.0;
 
 // We want to generate the same color if you try swiping back but then abort multiple times in a row.
 let seed = 100;
+let previousSeed = 100;
 function randomColor() {
-  seed = seed+1;
-  const rand = ((seed * 185852 + 1) % 34359738337) / 34359738337
-  return "#" + Math.floor(rand*16777215).toString(16);
+  previousSeed = seed;
+  seed = ((seed * 185852 + 1) % 34359738337);
+  const rand = seed / 34359738337;
+  console.log(rand);
+  return "hsl(" + (360 * rand) + ", 50%, 50%)";
 }
 
 function getBackgroundColorForNextPage() {
@@ -140,29 +143,29 @@ function handlePointerUp(e: PointerEvent) {
     animateOnAbort();
     // Reset the color when the animation finished.
     aborting = true;
-    seed--;
+    seed = previousSeed;
   } else if (settingUnloadHandler.checked) {
     let offset = document.documentElement.style.getPropertyValue("--fg-offset");
     let scale = document.documentElement.style.getPropertyValue("--fg-scale");
     let p20 = document.documentElement.getBoundingClientRect().width * 10 / 100;
     let anim = document.documentElement.animate([{ '--fg-scale': 1.0, '--fg-offset': p20 + 'px' }], { duration: 300, fill: "forwards" });
     anim.finished.then(() => {
-      anim.commitStyles(); 
+      anim.commitStyles();
       anim.cancel();
       if(window.confirm("are you sure you want to leave this page?  It's very nice.")) {
         let anim = document.documentElement.animate([{ '--fg-scale': scale, '--fg-offset': offset }], { duration: 200, fill: "forwards" });
         anim.finished.then(() => {
-          anim.commitStyles(); 
+          anim.commitStyles();
           anim.cancel();
           animateOnAbort();
           // Reset the color when the animation finished.
           aborting = true;
-          seed--;
-          startAnimation().then(animatePostCommitOrAbort);      
-        });  
+          seed = previousSeed;
+          startAnimation().then(animatePostCommitOrAbort);
+        });
       }
     });
-    return;  
+    return;
   }
 
   startAnimation().then(animatePostCommitOrAbort);
@@ -245,7 +248,7 @@ function finishScrimAnimation() {
   document.documentElement.style.setProperty("--fg-offset", '0px');
   document.documentElement.style.setProperty("--vertical-offset", '0px');
   document.documentElement.style.setProperty("--scrim", "0.0");
-  document.documentElement.style.setProperty("--bg-scale", zoom.toString());  
+  document.documentElement.style.setProperty("--bg-scale", zoom.toString());
   document.documentElement.style.setProperty("--fg-scale", "1.0");
 
   if (aborting) {
