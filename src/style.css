@@ -127,6 +127,34 @@ body {
   --main-background-color: lightblue;
 }
 
+.screenshot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  object-fit: contain;
+}
+
+#buttonSettings {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.4);
+  font-size: 24pt;
+}
+
+#buttonTest {
+  font-size: 24pt;
+}
+
+#frontimg {
+  transform: translateX(var(--fg-offset)) translateY(var(--vertical-offset)) scale(var(--fg-scale));
+}
+
+#midimg {
+  transform: translateX(var(--bg-offset)) scale(var(--bg-scale));
+}
+
 ::view-transition-old(root) {
   animation: unset;
   transform: translateX(var(--fg-offset)) translateY(var(--vertical-offset)) scale(var(--fg-scale));

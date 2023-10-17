@@ -5,18 +5,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Default Nav Transitions</title>
-  <script type="module" crossorigin src="/slidey-ux-experiments/assets/index-4ef6fbd4.js"></script>
-  <link rel="stylesheet" href="/slidey-ux-experiments/assets/index-a11d40d6.css">
+  <script type="module" crossorigin src="/slidey-ux-experiments/assets/index-de778917.js"></script>
+  <link rel="stylesheet" href="/slidey-ux-experiments/assets/index-d7b0916f.css">
 </head>
 
 <body>
-  <div id="scrim" style="display: none"></div>
+  <!--
   <div id=progressContainer class="progress-container attributed">
+  -->
+  <div id=progressContainer style="z-index:9999" class="progress-container">
     <div id="progress" style="display:none">
       <progress id="progress_bar" style="width:100%" class="pure-material-progress-linear"/>
     </div>
   </div>
-  <div class="slider-container">
+  <div id=settingsPanel class="slider-container">
     <div class="title">
       Fun with Back Nav!
     </div>
@@ -48,10 +50,14 @@
           <input id="settingBackground" type="checkbox">
           white background only
         </label>
+        <!-- doesn't work with screenshots yet
+
         <label class=check-box-label id="label_for_progress_attribution">
           <input id="settingProgressAttribution" type="checkbox" checked>
           attribute progress bar to page
         </label>
+        
+        -->
         <label class=check-box-label id="label_for_load_progress_bar">
           <input id="settingLoadProgressBar" type="checkbox" checked>
           loading progress bar
@@ -77,6 +83,14 @@
         <input id="settingZoom" type="range" min="60" max="100" value="100" step="5">
       </div>
     </div>
+    <input type=button value="Test" id=buttonTest></input>
+  </div>
+  <div id=screenshots style=display:none>
+    <img class=screenshot id=backimg style=display:none src=/slidey-ux-experiments/assets/srp-cats-9d1ad75b.png>
+    <img class=screenshot id=midimg  src=/slidey-ux-experiments/assets/srp-couches-e4ab394d.png>
+    <div id="scrim" style="display: none"></div>
+    <img class=screenshot id=frontimg src=/slidey-ux-experiments/assets/srp-cats-9d1ad75b.png>
+    <input type=button value="Settings" id=buttonSettings></input>
   </div>
   
 </body>
