@@ -20,10 +20,10 @@ let screenshots = [
 let nextImgIndex = 0;
 
 
+const body = document.body ?? fail();
 const scrim = document.getElementById("scrim") ?? fail();
-const progress = document.getElementById("progress") ?? fail();
-//const progressContainer = document.getElementById("progressContainer") ?? fail();
-const progress_bar = document.getElementById("progress_bar") as HTMLProgressElement ?? fail();
+const globalProgress = document.getElementById("globalProgress") ?? fail();
+const attributedProgress = document.getElementById("attributedProgress") ?? fail();
 const networkDelayInput = document.getElementById("networkDelayInput") as HTMLInputElement ?? fail();
 const networkDelayDisplay = document.getElementById("networkDelayDisplay") as HTMLInputElement ?? fail();
 const networkDelayLoadInput = document.getElementById("networkDelayLoadInput") as HTMLInputElement ?? fail();
@@ -34,17 +34,19 @@ const buttonSettings = document.getElementById("buttonSettings") as HTMLInputEle
 const settingsPanel = document.getElementById("settingsPanel") ?? fail();
 const screenshotsContainer = document.getElementById("screenshots") ?? fail();
 
-const frontimg = document.getElementById("frontimg") as HTMLImageElement ?? fail();
-const midimg = document.getElementById("midimg") as HTMLImageElement ?? fail();
-const backimg = document.getElementById("backimg") as HTMLImageElement ?? fail();
+const frontimg = document.getElementById("frontimg")?.querySelector("img") as HTMLImageElement ?? fail();
+const midimg = document.getElementById("midimg")?.querySelector("img") as HTMLImageElement ?? fail();
+const backimg = document.getElementById("backimg")?.querySelector("img") as HTMLImageElement ?? fail();
 
-const settingLoadProgressBar = document.getElementById("settingLoadProgressBar") as HTMLInputElement ?? fail();
 const settingParallax = document.getElementById("settingParallax") as HTMLInputElement ?? fail();
 const settingLimitFingerDrag = document.getElementById("settingLimitFingerDrag") as HTMLInputElement ?? fail();
 const settingZoom = document.getElementById("settingZoom") as HTMLInputElement ?? fail();
-//const settingBackground = document.getElementById("settingBackground") as HTMLInputElement ?? fail();
-//const settingProgressAttribution = document.getElementById("settingProgressAttribution") as HTMLInputElement ?? fail();
+const settingProgressAttribution = document.getElementById("settingProgressAttribution") as HTMLInputElement ?? fail();
 const settingUnloadHandler = document.getElementById("settingUnloadHandler") as HTMLInputElement ?? fail();
+
+
+let progress = attributedProgress;
+let progress_bar = progress.querySelector(".bar") as HTMLProgressElement;
 
 let lastColor = "lightblue";
 
@@ -56,20 +58,6 @@ let bucket = [50, 100, 300, 600, 1200, 2500];
 
 let zoom = 1.0;
 let pop = 1.0;
-
-// We want to generate the same color if you try swiping back but then abort multiple times in a row.
-let seed = 100;
-//function randomColor() {
-//  seed = seed+1;
-//  const rand = ((seed * 185852 + 1) % 34359738337) / 34359738337
-//  return "#" + Math.floor(rand*16777215).toString(16);
-//}
-
-//function getBackgroundColorForNextPage() {
-//  if (!!settingBackground.checked)
-//    return "white";
-//  return randomColor();
-//}
 
 function delayToFullLoadMs() {
   let commitDelay = bucket[parseInt(networkDelayInput.value)];
@@ -140,7 +128,6 @@ function handlePointerUp(e: PointerEvent) {
     animateOnAbort();
     // Reset the color when the animation finished.
     aborting = true;
-    seed--;
   } else if (settingUnloadHandler.checked) {
     let offset = document.documentElement.style.getPropertyValue("--fg-offset");
     let scale = document.documentElement.style.getPropertyValue("--fg-scale");
@@ -155,9 +142,6 @@ function handlePointerUp(e: PointerEvent) {
           anim.commitStyles(); 
           anim.cancel();
           animateOnAbort();
-          // Reset the color when the animation finished.
-          aborting = true;
-          seed--;
           startAnimation().then(animatePostCommitOrAbort);      
         });  
       }
@@ -184,7 +168,7 @@ function animatePostCommitOrAbort() {
   let scrimOut = document.documentElement.animate([{ '--scrim': 0 }], { duration: 100 });
   scrimOut.finished.then(finishScrimAnimation);
 
-  animatingLoadingBar = !!settingLoadProgressBar.checked && !aborting;
+  animatingLoadingBar = !aborting;
   if (animatingLoadingBar) {
     animateLoadingProgressBar();
   } else {
@@ -304,25 +288,29 @@ function rotateImgs() {
   nextImgIndex = (nextImgIndex + 1) % screenshots.length;
 }
 
-//function changeProgressAttribution() {
-//  if (settingProgressAttribution.checked) {
-//    progressContainer.classList.add("attributed");
-//  } else {
-//    progressContainer.classList.remove("attributed");
-//  }
-//}
-
 function runTest() {
   settingsPanel.style.display = "none";
   scrim.style.display = "block";
   screenshotsContainer.style.display = "block";
+  body.classList.add("test");
 }
 
 function stopTest() {
   settingsPanel.style.display = "flex";
   scrim.style.display = "none";
   screenshotsContainer.style.display = "none";
+  body.classList.remove("test");
 }
+
+function changeProgressAttribution() {
+  if (!settingProgressAttribution.checked) {
+    progress = globalProgress;
+  } else {
+    progress = attributedProgress;
+  }
+  progress_bar = progress.querySelector(".bar") as HTMLProgressElement;
+}
+
 
 function init() {
   networkDelayInput.addEventListener("input", updateDisplays);
@@ -339,7 +327,7 @@ function init() {
   backimg.src = screenshots[nextImgIndex];
   nextImgIndex = (nextImgIndex + 1) % screenshots.length;
 
-  //settingProgressAttribution.addEventListener("change", changeProgressAttribution);
+  settingProgressAttribution.addEventListener("change", changeProgressAttribution);
   updateDisplays();
 
 
@@ -348,5 +336,4 @@ function init() {
   window.addEventListener("pointerup", handlePointerUp);
   window.addEventListener("pointermove", handlePointerMove);
 }
-
 onload = init

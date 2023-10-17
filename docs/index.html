@@ -5,8 +5,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Default Nav Transitions</title>
-  <script type="module" crossorigin src="/slidey-ux-experiments/assets/index-de778917.js"></script>
-  <link rel="stylesheet" href="/slidey-ux-experiments/assets/index-d7b0916f.css">
+  <script type="module" crossorigin src="/slidey-ux-experiments/assets/index-acd5ecef.js"></script>
+  <link rel="stylesheet" href="/slidey-ux-experiments/assets/index-f275c938.css">
 </head>
 
 <body>
@@ -14,8 +14,8 @@
   <div id=progressContainer class="progress-container attributed">
   -->
   <div id=progressContainer style="z-index:9999" class="progress-container">
-    <div id="progress" style="display:none">
-      <progress id="progress_bar" style="width:100%" class="pure-material-progress-linear"/>
+    <div id="globalProgress" style="display:none">
+      <progress style="width:100%" class="bar pure-material-progress-linear"/>
     </div>
   </div>
   <div id=settingsPanel class="slider-container">
@@ -50,18 +50,10 @@
           <input id="settingBackground" type="checkbox">
           white background only
         </label>
-        <!-- doesn't work with screenshots yet
-
         <label class=check-box-label id="label_for_progress_attribution">
           <input id="settingProgressAttribution" type="checkbox" checked>
           attribute progress bar to page
         </label>
-        
-        -->
-        <label class=check-box-label id="label_for_load_progress_bar">
-          <input id="settingLoadProgressBar" type="checkbox" checked>
-          loading progress bar
-        </label>        
         <label class=check-box-label id="label_for_unload_handler">
           <input id="settingUnloadHandler" type="checkbox">
           unload handler
@@ -86,10 +78,19 @@
     <input type=button value="Test" id=buttonTest></input>
   </div>
   <div id=screenshots style=display:none>
-    <img class=screenshot id=backimg style=display:none src=/slidey-ux-experiments/assets/srp-cats-9d1ad75b.png>
-    <img class=screenshot id=midimg  src=/slidey-ux-experiments/assets/srp-couches-e4ab394d.png>
-    <div id="scrim" style="display: none"></div>
-    <img class=screenshot id=frontimg src=/slidey-ux-experiments/assets/srp-cats-9d1ad75b.png>
+    <div class=screenshot_container id=backimg>
+      <img class=screenshot style=display:none src=/slidey-ux-experiments/assets/srp-cats-9d1ad75b.png>
+    </div>
+    <div class=screenshot_container id=midimg>
+      <img class=screenshot src=/slidey-ux-experiments/assets/srp-couches-e4ab394d.png>
+      <div id="scrim" style="display: none"></div>
+      <div id="attributedProgress" style="display:none">
+        <progress style="width:100%" class="bar pure-material-progress-linear"/>
+      </div>
+    </div>
+    <div class=screenshot_container id=frontimg>
+      <img class=screenshot src=/slidey-ux-experiments/assets/srp-cats-9d1ad75b.png>
+    </div>
     <input type=button value="Settings" id=buttonSettings></input>
   </div>
   
