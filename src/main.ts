@@ -40,7 +40,8 @@ let startTime = 0;
 let commitTime = 0;
 let loadTime = 0;
 
-let bucket = [50, 100, 300, 600, 1200, 2500];
+let bucket_name = ["P25", "P50", "P75", "P90", "P95", "P99"];
+let bucket = [30, 100, 330, 660, 1000, 2360];
 
 let zoom = 1.0;
 let pop = 1.0;
@@ -292,7 +293,8 @@ function initPhysics(): PhysicsModel {
 }
 
 function updateDisplays() {
-  networkDelayDisplay.innerHTML = bucket[parseInt(networkDelayInput.value)].toString();
+  let bucketIndex = parseInt(networkDelayInput.value);
+  networkDelayDisplay.innerHTML = bucket_name[bucketIndex] + "=" + bucket[bucketIndex].toString();
   networkDelayLoadDisplay.innerHTML = delayToFullLoadMs().toString();
   zoom = parseInt(settingZoom.value)/100.0;
   pop = zoom + (1.0 - zoom)/3; // 1/3 betwen zoom to 1.0
