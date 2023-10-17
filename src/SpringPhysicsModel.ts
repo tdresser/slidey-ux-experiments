@@ -116,17 +116,18 @@ export class SpringPhysicsModel extends PhysicsModel {
             dampingRatio: 0.95,
             name: "100%",
         });
-        // const distanceFactorToMaxOvershoot = 0.5;
-        // const maxOvershootFactor = 0.15;
+        //const distanceFactorToMaxOvershoot = 0.5;
+        //const maxOvershootFactor = 0.15;
         this.#spring80 = new Spring({
             frequencyResponse: this.spring80FrequencyResponse,
             dampingRatio: this.spring80DampingRatio,
             name: "80%",
             // 1-1/(x+1)
-            /* overshootCurve: function (x) {
+            /*overshootCurve: function (x) {
                 const percent = Math.min(1, -x / (init.targetOffset * distanceFactorToMaxOvershoot));
+                console.log(percent);
                 return -init.targetOffset * maxOvershootFactor * (1 - 1/(percent + 1));
-            } */
+            }*/
         });
         this.#spring0 = new Spring({
             frequencyResponse: 200,
