@@ -10,7 +10,8 @@ export interface PhysicsModelInit {
     networkDelay: number,
     targetOffset: number,
     parallax: boolean,
-    limitFingerDrag: boolean
+    limitFingerDrag: boolean,
+    boostVelocity: boolean
 }
 
 export abstract class PhysicsModel {
@@ -21,12 +22,14 @@ export abstract class PhysicsModel {
     offset: number = 0;
     parallax: boolean;
     limitFingerDrag: boolean;
+    boostVelocity: boolean;
 
     constructor(init: PhysicsModelInit) {
         this.networkDelay = init.networkDelay;
         this.maxOffset = init.targetOffset;
         this.parallax = init.parallax;
         this.limitFingerDrag = init.limitFingerDrag;
+        this.boostVelocity = init.boostVelocity;
     }
 
     startAnimating(time: number) {

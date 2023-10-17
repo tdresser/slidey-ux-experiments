@@ -211,6 +211,10 @@ export class SpringPhysicsModel extends PhysicsModel {
     pointerUp(_: PointerEvent): "success" | "abort" {
         // Don't let us overshoot too far. TODO: tune this.
         let velocity = findVelocity(this.pointerHistory);
+        if(this.boostVelocity) {
+            velocity *= 2.0;
+            velocity = Math.max(velocity, 1.0);
+        }
         velocity = Math.min(velocity, 2.0);
 
         // TODO: we could use the event position (but maybe it's already sent via a prior touchmove?)

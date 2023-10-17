@@ -32,6 +32,7 @@ const settingZoom = document.getElementById("settingZoom") as HTMLInputElement ?
 const settingBackground = document.getElementById("settingBackground") as HTMLInputElement ?? fail();
 const settingProgressAttribution = document.getElementById("settingProgressAttribution") as HTMLInputElement ?? fail();
 const settingUnloadHandler = document.getElementById("settingUnloadHandler") as HTMLInputElement ?? fail();
+const settingBoostVelocity = document.getElementById("settingBoostVelocity") as HTMLInputElement ?? fail();
 
 let lastColor = "lightblue";
 
@@ -286,6 +287,7 @@ function initPhysics(): PhysicsModel {
     targetOffset: document.documentElement.getBoundingClientRect().width,
     parallax: !!settingParallax.checked,
     limitFingerDrag: !!settingLimitFingerDrag.checked,
+    boostVelocity: !!settingBoostVelocity.checked
   });
 }
 
