@@ -27,32 +27,10 @@
         <input id="networkDelayInput" type="range" min="0" max="5" value="2">
         <p>how long to commit</p>
       </div>
-      <div class="slider-label">
-        <h2>load delay: <span id="networkDelayLoadDisplay"></span><span>ms</span></h2>
-        <input id="networkDelayLoadInput" type="range" min="0" max="5" value="2">
-        <p>how long to full page load</p>
-      </div>
     </div>
     <div class="slider-window">
       <div class="slider-label modes">
         <h2>Modes</h2>
-        <label class=check-box-label id="label_for_parallax">
-          <input id="settingParallax" type="checkbox" checked>
-          parallax effect
-        </label>
-        <br>
-        <label class=check-box-label id="label_for_limit_finger_drag">
-          <input id="settingLimitFingerDrag" type="checkbox" checked>
-          limit finger drag
-        </label>
-        <label class=check-box-label id="label_for_background">
-          <input id="settingBackground" type="checkbox">
-          white background only
-        </label>
-        <label class=check-box-label id="label_for_progress_attribution">
-          <input id="settingProgressAttribution" type="checkbox" checked>
-          attribute progress bar to page
-        </label>
         <label class=check-box-label id="label_for_unload_handler">
           <input id="settingUnloadHandler" type="checkbox">
           unload handler
@@ -65,7 +43,7 @@
     </div>
     <div class="slider-window">
       <div class="slider-label">
-        <h2>80% Spring Frequency Response: <span id="spring80FrequencyResponseDisplay"></span></h2>
+        <h2>80% Spring Response: <span id="spring80FrequencyResponseDisplay"></span></h2>
         <input id="spring80FrequencyResponse" type="range" min="10" max="2000" value="800">
 
         <h2>80% Spring Damping Ratio: <span id="spring80DampingRatioDisplay"></span></h2>
@@ -76,6 +54,10 @@
       <div class="slider-label">
         <h2>zoom: <span id="zoomDisplay"></span><span>%</span></h2>
         <input id="settingZoom" type="range" min="60" max="100" value="100" step="5">
+        <label class=check-box-label id="label_for_progress_attribution">
+          <input id="settingProgressAttribution" type="checkbox" checked>
+          attribute progress bar to page
+        </label>
       </div>
     </div>
     <div class="slider-window">

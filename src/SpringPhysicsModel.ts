@@ -211,11 +211,14 @@ export class SpringPhysicsModel extends PhysicsModel {
     pointerUp(_: PointerEvent): "success" | "abort" {
         // Don't let us overshoot too far. TODO: tune this.
         let velocity = findVelocity(this.pointerHistory);
+        console.log("before: " + velocity);
         if(this.boostVelocity) {
             velocity *= 4.0;
             velocity = Math.max(velocity, 1.0);
         }
+        console.log("post boost: " + velocity)
         velocity = Math.min(velocity, 2.0);
+        console.log("post clamp: " + velocity);
 
         // TODO: we could use the event position (but maybe it's already sent via a prior touchmove?)
         // If the offset + 100ms at current velocity < threshold, abort.

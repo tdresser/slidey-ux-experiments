@@ -33,8 +33,6 @@ const globalProgress = document.getElementById("globalProgress") ?? fail();
 const attributedProgress = document.getElementById("attributedProgress") ?? fail();
 const networkDelayInput = document.getElementById("networkDelayInput") as HTMLInputElement ?? fail();
 const networkDelayDisplay = document.getElementById("networkDelayDisplay") as HTMLInputElement ?? fail();
-const networkDelayLoadInput = document.getElementById("networkDelayLoadInput") as HTMLInputElement ?? fail();
-const networkDelayLoadDisplay = document.getElementById("networkDelayLoadDisplay") as HTMLInputElement ?? fail();
 const zoomDisplay = document.getElementById("zoomDisplay") as HTMLInputElement ?? fail();
 const buttonTest = document.getElementById("buttonTest") as HTMLInputElement ?? fail();
 const buttonSettings = document.getElementById("buttonSettings") as HTMLInputElement ?? fail();
@@ -46,8 +44,6 @@ const frontimg = document.getElementById("frontimg")?.querySelector("img") as HT
 const midimg = document.getElementById("midimg")?.querySelector("img") as HTMLImageElement ?? fail();
 const backimg = document.getElementById("backimg")?.querySelector("img") as HTMLImageElement ?? fail();
 
-const settingParallax = document.getElementById("settingParallax") as HTMLInputElement ?? fail();
-const settingLimitFingerDrag = document.getElementById("settingLimitFingerDrag") as HTMLInputElement ?? fail();
 const settingZoom = document.getElementById("settingZoom") as HTMLInputElement ?? fail();
 const settingProgressAttribution = document.getElementById("settingProgressAttribution") as HTMLInputElement ?? fail();
 const settingUnloadHandler = document.getElementById("settingUnloadHandler") as HTMLInputElement ?? fail();
@@ -72,8 +68,7 @@ let pop = 1.0;
 
 function delayToFullLoadMs() {
   let commitDelay = bucket[parseInt(networkDelayInput.value)];
-  let loadDelay = bucket[parseInt(networkDelayLoadInput.value)];
-  return Math.max(commitDelay, loadDelay);
+  return commitDelay * 2;
 }
 
 function handlePointerDown(e: PointerEvent) {
@@ -274,8 +269,8 @@ function initPhysics(): PhysicsModel {
   return new SpringPhysicsModel({
     networkDelay: bucket[parseInt(networkDelayInput.value)],
     targetOffset: document.documentElement.getBoundingClientRect().width,
-    parallax: !!settingParallax.checked,
-    limitFingerDrag: !!settingLimitFingerDrag.checked,
+    parallax: true,
+    limitFingerDrag: true,
     boostVelocity: !!settingBoostVelocity.checked,
     targetStopPercent: parseFloat(settingTargetStop.value)
   });
@@ -284,7 +279,6 @@ function initPhysics(): PhysicsModel {
 function updateDisplays() {
   let bucketIndex = parseInt(networkDelayInput.value);
   networkDelayDisplay.innerHTML = bucket_name[bucketIndex] + "=" + bucket[bucketIndex].toString();
-  networkDelayLoadDisplay.innerHTML = delayToFullLoadMs().toString();
   zoom = parseInt(settingZoom.value)/100.0;
   pop = zoom + (1.0 - zoom)/3; // 1/3 betwen zoom to 1.0
   zoomDisplay.innerHTML = settingZoom.value.toString();
@@ -331,7 +325,6 @@ function changeProgressAttribution() {
 
 function init() {
   networkDelayInput.addEventListener("input", updateDisplays);
-  networkDelayLoadInput.addEventListener("input", updateDisplays);
   settingZoom.addEventListener("input", updateDisplays);
   settingTargetStop.addEventListener("input", updateDisplays);
 
