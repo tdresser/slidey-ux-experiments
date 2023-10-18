@@ -6,6 +6,10 @@ body {
   padding: 0;
 }
 
+body.test {
+  overflow: hidden;
+}
+
 * {
   user-select: none;
 }
@@ -114,7 +118,7 @@ body {
 
 @property --main-background-color {
   syntax: "<color>";
-  initial-value: lightblue;
+  initial-value: white;
   inherits: true;
 }
 
@@ -124,7 +128,40 @@ body {
   --fg-scale: 1.0;
   --bg-scale: 1.0;
   --scrim: 0;
-  --main-background-color: lightblue;
+  --main-background-color: white;
+}
+
+.screenshot_container {
+  position: absolute;
+  inset: 0;
+}
+
+.screenshot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  object-fit: contain;
+}
+
+#buttonSettings {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.4);
+  font-size: 24pt;
+}
+
+#buttonTest {
+  font-size: 24pt;
+}
+
+#frontimg {
+  transform: translateX(var(--fg-offset)) translateY(var(--vertical-offset)) scale(var(--fg-scale));
+}
+
+#midimg {
+  transform: translateX(var(--bg-offset)) scale(var(--bg-scale));
 }
 
 ::view-transition-old(root) {
@@ -195,17 +232,17 @@ fieldset {
   --progress-height: 5px;
 }
 
+.bar {
+  position: relative;
+  z-index: 101;
+}
+
 .progress-container {
   top: -1px;
   left: 0;
   right: 0;
   position: absolute;
   height: var(--progress-height);
-}
-
-.progress-container:not(.attributed) {
-  view-transition-name: progress;
-  background: lightgray;
 }
 
 .pure-material-progress-linear {

@@ -3,8 +3,6 @@ import { SpringPhysicsModel } from './SpringPhysicsModel.ts';
 import { PhysicsModel } from './PhysicsModel.ts';
 import { fail } from './util.ts';
 
-let animationLock: Animation;
-let transition;
 
 let animating = false;
 let pointingDown = false;
@@ -15,24 +13,41 @@ let hasCommitted = false;
 let animatingLoadingBar = false;
 let animatingScrim = false;
 
+let screenshots = [
+  "resources/srp-cats.png",
+  "resources/srp-couches.png"
+]
+let nextImgIndex = 0;
+
+
+const body = document.body ?? fail();
 const scrim = document.getElementById("scrim") ?? fail();
-const progress = document.getElementById("progress") ?? fail();
-const progressContainer = document.getElementById("progressContainer") ?? fail();
-const progress_bar = document.getElementById("progress_bar") as HTMLProgressElement ?? fail();
+const globalProgress = document.getElementById("globalProgress") ?? fail();
+const attributedProgress = document.getElementById("attributedProgress") ?? fail();
 const networkDelayInput = document.getElementById("networkDelayInput") as HTMLInputElement ?? fail();
 const networkDelayDisplay = document.getElementById("networkDelayDisplay") as HTMLInputElement ?? fail();
 const networkDelayLoadInput = document.getElementById("networkDelayLoadInput") as HTMLInputElement ?? fail();
 const networkDelayLoadDisplay = document.getElementById("networkDelayLoadDisplay") as HTMLInputElement ?? fail();
 const zoomDisplay = document.getElementById("zoomDisplay") as HTMLInputElement ?? fail();
+const buttonTest = document.getElementById("buttonTest") as HTMLInputElement ?? fail();
+const buttonSettings = document.getElementById("buttonSettings") as HTMLInputElement ?? fail();
+const settingsPanel = document.getElementById("settingsPanel") ?? fail();
+const screenshotsContainer = document.getElementById("screenshots") ?? fail();
 
-const settingLoadProgressBar = document.getElementById("settingLoadProgressBar") as HTMLInputElement ?? fail();
+const frontimg = document.getElementById("frontimg")?.querySelector("img") as HTMLImageElement ?? fail();
+const midimg = document.getElementById("midimg")?.querySelector("img") as HTMLImageElement ?? fail();
+const backimg = document.getElementById("backimg")?.querySelector("img") as HTMLImageElement ?? fail();
+
 const settingParallax = document.getElementById("settingParallax") as HTMLInputElement ?? fail();
 const settingLimitFingerDrag = document.getElementById("settingLimitFingerDrag") as HTMLInputElement ?? fail();
 const settingZoom = document.getElementById("settingZoom") as HTMLInputElement ?? fail();
-const settingBackground = document.getElementById("settingBackground") as HTMLInputElement ?? fail();
 const settingProgressAttribution = document.getElementById("settingProgressAttribution") as HTMLInputElement ?? fail();
 const settingUnloadHandler = document.getElementById("settingUnloadHandler") as HTMLInputElement ?? fail();
 const settingBoostVelocity = document.getElementById("settingBoostVelocity") as HTMLInputElement ?? fail();
+
+
+let progress = attributedProgress;
+let progress_bar = progress.querySelector(".bar") as HTMLProgressElement;
 
 let lastColor = "lightblue";
 
@@ -46,23 +61,6 @@ let bucket = [30, 100, 330, 660, 1000, 2360];
 let zoom = 1.0;
 let pop = 1.0;
 
-// We want to generate the same color if you try swiping back but then abort multiple times in a row.
-let seed = 100;
-let previousSeed = 100;
-function randomColor() {
-  previousSeed = seed;
-  seed = ((seed * 185852 + 1) % 34359738337);
-  const rand = seed / 34359738337;
-  console.log(rand);
-  return "hsl(" + (360 * rand) + ", 50%, 50%)";
-}
-
-function getBackgroundColorForNextPage() {
-  if (!!settingBackground.checked)
-    return "white";
-  return randomColor();
-}
-
 function delayToFullLoadMs() {
   let commitDelay = bucket[parseInt(networkDelayInput.value)];
   let loadDelay = bucket[parseInt(networkDelayLoadInput.value)];
@@ -70,24 +68,11 @@ function delayToFullLoadMs() {
 }
 
 function handlePointerDown(e: PointerEvent) {
-  if ((e.target as HTMLElement)?.id != "" || animating) {
+  if ((e.target as HTMLElement)?.classList[0] != "screenshot" || animating) {
     return;
   }
   pointingDown = true;
   physicsModel = initPhysics();
-
-  // @ts-ignore
-  transition = document.startViewTransition();
-  transition.ready.then(() => {
-    lastColor = document.documentElement.style.getPropertyValue("--main-background-color");
-    document.documentElement.style.setProperty("--main-background-color", getBackgroundColorForNextPage());
-    animationLock = document.documentElement.animate({}, {
-      duration: 0,
-      pseudoElement: '::view-transition-new(root)',
-    });
-    animationLock.pause();
-    scrim.style.display = "block";
-  });
 }
 
 function offsetToScrimPercent(offset:number) {
@@ -145,7 +130,6 @@ function handlePointerUp(e: PointerEvent) {
     animateOnAbort();
     // Reset the color when the animation finished.
     aborting = true;
-    seed = previousSeed;
   } else if (settingUnloadHandler.checked) {
     let offset = document.documentElement.style.getPropertyValue("--fg-offset");
     let scale = document.documentElement.style.getPropertyValue("--fg-scale");
@@ -160,11 +144,8 @@ function handlePointerUp(e: PointerEvent) {
           anim.commitStyles();
           anim.cancel();
           animateOnAbort();
-          // Reset the color when the animation finished.
-          aborting = true;
-          seed = previousSeed;
-          startAnimation().then(animatePostCommitOrAbort);
-        });
+          startAnimation().then(animatePostCommitOrAbort);      
+        });  
       }
     });
     return;
@@ -175,7 +156,7 @@ function handlePointerUp(e: PointerEvent) {
 
 function animateOnCommit() {
   let anim = document.documentElement.animate([{ '--fg-scale': pop, '--bg-scale': 1.0 }], { duration: 100, fill: "forwards" });
-  anim.finished.then(() => {anim.commitStyles(); anim.cancel();});
+  anim.finished.then(() => {anim.commitStyles(); anim.cancel(); });
 }
 
 function animateOnAbort() {
@@ -189,7 +170,7 @@ function animatePostCommitOrAbort() {
   let scrimOut = document.documentElement.animate([{ '--scrim': 0 }], { duration: 100 });
   scrimOut.finished.then(finishScrimAnimation);
 
-  animatingLoadingBar = !!settingLoadProgressBar.checked && !aborting;
+  animatingLoadingBar = !aborting;
   if (animatingLoadingBar) {
     animateLoadingProgressBar();
   } else {
@@ -256,12 +237,9 @@ function finishScrimAnimation() {
   if (aborting) {
     document.documentElement.style.setProperty("--main-background-color", lastColor);
     aborting = false;
+  } else {
+    rotateImgs();
   }
-
-  if (animationLock) {
-    animationLock.play();
-  }
-  scrim.style.display = "none";
 
   if (!animatingLoadingBar)
     animating = false;
@@ -307,24 +285,59 @@ function updateDisplays() {
   finishAllAnimation();
 }
 
-function changeProgressAttribution() {
-  if (settingProgressAttribution.checked) {
-    progressContainer.classList.add("attributed");
-  } else {
-    progressContainer.classList.remove("attributed");
-  }
+function rotateImgs() {
+  frontimg.src = midimg.src;
+  midimg.src = backimg.src;
+  backimg.src = screenshots[nextImgIndex]
+  nextImgIndex = (nextImgIndex + 1) % screenshots.length;
 }
+
+function runTest() {
+  settingsPanel.style.display = "none";
+  scrim.style.display = "block";
+  screenshotsContainer.style.display = "block";
+  body.classList.add("test");
+}
+
+function stopTest() {
+  settingsPanel.style.display = "flex";
+  scrim.style.display = "none";
+  screenshotsContainer.style.display = "none";
+  body.classList.remove("test");
+}
+
+function changeProgressAttribution() {
+  if (!settingProgressAttribution.checked) {
+    progress = globalProgress;
+  } else {
+    progress = attributedProgress;
+  }
+  progress_bar = progress.querySelector(".bar") as HTMLProgressElement;
+}
+
 
 function init() {
   networkDelayInput.addEventListener("input", updateDisplays);
   networkDelayLoadInput.addEventListener("input", updateDisplays);
   settingZoom.addEventListener("input", updateDisplays);
+
+  buttonTest.addEventListener("click", runTest);
+  buttonSettings.addEventListener("click", stopTest);
+
+  frontimg.src = screenshots[nextImgIndex];
+  nextImgIndex = (nextImgIndex + 1) % screenshots.length;
+  midimg.src = screenshots[nextImgIndex];
+  nextImgIndex = (nextImgIndex + 1) % screenshots.length;
+  backimg.src = screenshots[nextImgIndex];
+  nextImgIndex = (nextImgIndex + 1) % screenshots.length;
+
   settingProgressAttribution.addEventListener("change", changeProgressAttribution);
   updateDisplays();
+
+
 
   window.addEventListener("pointerdown", handlePointerDown);
   window.addEventListener("pointerup", handlePointerUp);
   window.addEventListener("pointermove", handlePointerMove);
 }
-
 onload = init
