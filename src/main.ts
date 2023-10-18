@@ -203,7 +203,9 @@ function advance(rafTime: number, finished: (d?: unknown) => void) {
   const advanceResult = physicsModel.advance(rafTime);
   document.documentElement.style.setProperty("--fg-offset", `${advanceResult.fgOffset}px`);
   document.documentElement.style.setProperty("--bg-offset", `${advanceResult.bgOffset}px`);
-  document.documentElement.style.setProperty("--scrim", `${offsetToScrimPercent(advanceResult.fgOffset)}`);
+  const scrimBase = offsetToScrimPercent(advanceResult.fgOffset);
+  const scrim = scrimBase + 0.1*Math.sin((rafTime - startTime)/200);
+  document.documentElement.style.setProperty("--scrim", `${scrim}`);
   updateZoom(advanceResult.fgOffset);
   if (rafTime-startTime > 800) {
      progress.style.display = "block";
