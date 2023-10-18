@@ -10,9 +10,11 @@ body.test {
   overflow: hidden;
 }
 
+/*
 * {
   user-select: none;
 }
+*/
 
 :root, body {
   touch-action: none;
