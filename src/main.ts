@@ -70,7 +70,7 @@ function delayToFullLoadMs() {
 }
 
 function handlePointerDown(e: PointerEvent) {
-  if ((e.target as HTMLElement)?.classList[0] != "screenshot" || animating) {
+  if ((e.target as HTMLElement)?.classList[0] != "touch-target" || animating) {
     return;
   }
   pointingDown = true;
@@ -90,6 +90,7 @@ function handlePointerMove(e: PointerEvent) {
   }
 
   let moveResult = physicsModel.pointerMove(e);
+  console.log(moveResult);
   document.documentElement.style.setProperty("--fg-offset", `${moveResult.fgOffset}px`);
   document.documentElement.style.setProperty("--bg-offset", `${moveResult.bgOffset}px`);
   document.documentElement.style.setProperty("--scrim", `${offsetToScrimPercent(moveResult.fgOffset)}`);
