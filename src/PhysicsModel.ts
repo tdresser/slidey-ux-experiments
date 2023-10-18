@@ -12,6 +12,7 @@ export interface PhysicsModelInit {
     parallax: boolean,
     limitFingerDrag: boolean,
     boostVelocity: boolean
+    targetStopPercent: number
 }
 
 export abstract class PhysicsModel {
@@ -23,6 +24,7 @@ export abstract class PhysicsModel {
     parallax: boolean;
     limitFingerDrag: boolean;
     boostVelocity: boolean;
+    targetStopPercent: number
 
     constructor(init: PhysicsModelInit) {
         this.networkDelay = init.networkDelay;
@@ -30,6 +32,7 @@ export abstract class PhysicsModel {
         this.parallax = init.parallax;
         this.limitFingerDrag = init.limitFingerDrag;
         this.boostVelocity = init.boostVelocity;
+        this.targetStopPercent = init.targetStopPercent;
     }
 
     startAnimating(time: number) {

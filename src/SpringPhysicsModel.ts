@@ -157,8 +157,8 @@ export class SpringPhysicsModel extends PhysicsModel {
             // Prevent overshoot here.
             this.offset = Math.max(springResult.offset, 0);
         } else if (!this.hasCommitted) {
-            springResult = this.#spring80.position(this.maxOffset * 0.8 - this.animationStartOffset, time);
-            this.offset = this.maxOffset * 0.8 - springResult.offset;
+            springResult = this.#spring80.position(this.maxOffset * this.targetStopPercent - this.animationStartOffset, time);
+            this.offset = this.maxOffset * this.targetStopPercent - springResult.offset;
         } else {
             springResult = this.#spring100.position(this.maxOffset - this.animationStartOffset, time);
             this.offset = this.maxOffset - springResult.offset;
@@ -197,8 +197,8 @@ export class SpringPhysicsModel extends PhysicsModel {
         if (!this.limitFingerDrag) {
             return offset + movement;
         }
-        // Linear to 0.8; assumes no "overdrag" like on mobile sim
-        return offset + 0.8 * movement;
+        // Linear to targetStopPercent; assumes no "overdrag" like on mobile sim
+        return offset + this.targetStopPercent * movement;
     }
 
     fgToBgOffset(offset: number): number {

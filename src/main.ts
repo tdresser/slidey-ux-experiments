@@ -33,6 +33,7 @@ const buttonTest = document.getElementById("buttonTest") as HTMLInputElement ?? 
 const buttonSettings = document.getElementById("buttonSettings") as HTMLInputElement ?? fail();
 const settingsPanel = document.getElementById("settingsPanel") ?? fail();
 const screenshotsContainer = document.getElementById("screenshots") ?? fail();
+const targetStopDisplay = document.getElementById("targetStopDisplay") ?? fail();
 
 const frontimg = document.getElementById("frontimg")?.querySelector("img") as HTMLImageElement ?? fail();
 const midimg = document.getElementById("midimg")?.querySelector("img") as HTMLImageElement ?? fail();
@@ -44,6 +45,7 @@ const settingZoom = document.getElementById("settingZoom") as HTMLInputElement ?
 const settingProgressAttribution = document.getElementById("settingProgressAttribution") as HTMLInputElement ?? fail();
 const settingUnloadHandler = document.getElementById("settingUnloadHandler") as HTMLInputElement ?? fail();
 const settingBoostVelocity = document.getElementById("settingBoostVelocity") as HTMLInputElement ?? fail();
+const settingTargetStop = document.getElementById("settingTargetStop") as HTMLInputElement ?? fail();
 
 
 let progress = attributedProgress;
@@ -266,7 +268,8 @@ function initPhysics(): PhysicsModel {
     targetOffset: document.documentElement.getBoundingClientRect().width,
     parallax: !!settingParallax.checked,
     limitFingerDrag: !!settingLimitFingerDrag.checked,
-    boostVelocity: !!settingBoostVelocity.checked
+    boostVelocity: !!settingBoostVelocity.checked,
+    targetStopPercent: parseFloat(settingTargetStop.value)
   });
 }
 
@@ -277,6 +280,8 @@ function updateDisplays() {
   zoom = parseInt(settingZoom.value)/100.0;
   pop = zoom + (1.0 - zoom)/3; // 1/3 betwen zoom to 1.0
   zoomDisplay.innerHTML = settingZoom.value.toString();
+
+  targetStopDisplay.innerHTML = 100 * parseFloat(settingTargetStop.value);
 
   physicsModel.updateDisplays();
 
@@ -320,6 +325,7 @@ function init() {
   networkDelayInput.addEventListener("input", updateDisplays);
   networkDelayLoadInput.addEventListener("input", updateDisplays);
   settingZoom.addEventListener("input", updateDisplays);
+  settingTargetStop.addEventListener("input", updateDisplays);
 
   buttonTest.addEventListener("click", runTest);
   buttonSettings.addEventListener("click", stopTest);
