@@ -219,7 +219,7 @@ export class SpringPhysicsModel extends PhysicsModel {
 
         // TODO: we could use the event position (but maybe it's already sent via a prior touchmove?)
         // If the offset + 100ms at current velocity < threshold, abort.
-        if (((this.offset + velocity * 100) / this.maxOffset) < 0.3) {
+        if (((this.offset + velocity * 100) / this.maxOffset) < 0.3 || velocity < -0.1) {
             this.hasAborted = true;
             this.#spring0.initialVelocity = -velocity
             return "abort";
