@@ -15,7 +15,14 @@ let animatingScrim = false;
 
 let screenshots = [
   "resources/srp-cats.png",
-  "resources/srp-couches.png"
+  "resources/srp-couches.png",
+  "resources/banana-pie-srp.png",
+  "resources/goo.gl-stock-a.png",
+  "resources/goo.gl-stock-b.png",
+  "resources/news-frontpage.png",
+  "resources/news-article.png",
+  "resources/pants-hemming-srp.png",
+  "resources/pants-srp.png",
 ]
 let nextImgIndex = 0;
 
@@ -147,8 +154,8 @@ function handlePointerUp(e: PointerEvent) {
           anim.commitStyles();
           anim.cancel();
           animateOnAbort();
-          startAnimation().then(animatePostCommitOrAbort);      
-        });  
+          startAnimation().then(animatePostCommitOrAbort);
+        });
       }
     });
     return;

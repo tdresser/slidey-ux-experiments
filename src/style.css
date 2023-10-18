@@ -127,6 +127,7 @@ body.test {
   position: absolute;
   inset: 0;
   touch-action: none;
+  overflow:hidden;
 }
 
 .screenshot {
