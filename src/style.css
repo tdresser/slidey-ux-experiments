@@ -126,6 +126,7 @@ body.test {
 .screenshot_container {
   position: absolute;
   inset: 0;
+  touch-action: none;
 }
 
 .screenshot {
