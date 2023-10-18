@@ -281,7 +281,7 @@ function updateDisplays() {
   pop = zoom + (1.0 - zoom)/3; // 1/3 betwen zoom to 1.0
   zoomDisplay.innerHTML = settingZoom.value.toString();
 
-  targetStopDisplay.innerHTML = 100 * parseFloat(settingTargetStop.value);
+  targetStopDisplay.innerHTML = `${100 * parseFloat(settingTargetStop.value)}`;
 
   physicsModel.updateDisplays();
 

@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Default Nav Transitions</title>
-  <script type="module" crossorigin src="/slidey-ux-experiments/assets/index-63c41b36.js"></script>
+  <script type="module" crossorigin src="/slidey-ux-experiments/assets/index-486172b5.js"></script>
   <link rel="stylesheet" href="/slidey-ux-experiments/assets/index-f275c938.css">
 </head>
 
@@ -77,6 +77,12 @@
       <div class="slider-label">
         <h2>zoom: <span id="zoomDisplay"></span><span>%</span></h2>
         <input id="settingZoom" type="range" min="60" max="100" value="100" step="5">
+      </div>
+    </div>
+    <div class="slider-window">
+      <div class="slider-label">
+        <h2>target commit stop: <span id="targetStopDisplay"></span><span>%</span></h2>
+        <input id="settingTargetStop" type="range" min="0.7" max="0.95" value="0.8" step="0.05">
       </div>
     </div>
     <input type=button value="Test" id=buttonTest></input>
