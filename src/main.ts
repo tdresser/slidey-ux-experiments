@@ -70,8 +70,7 @@ function delayToFullLoadMs() {
 }
 
 function handlePointerDown(e: PointerEvent) {
-  let classname = (e.target as HTMLElement)?.classList[0];
-  if ((classname != "screenshot" && classname != 'slider-container') || animating) {
+  if ((e.target as HTMLElement)?.classList[0] != "screenshot" || animating) {
     return;
   }
   pointingDown = true;
