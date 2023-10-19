@@ -238,7 +238,7 @@ export class SpringPhysicsModel extends PhysicsModel {
 
     setDefaultVelocity(): void {
         this.offset = this.maxOffset / 4; // assume a default of touch up at 25% of the width
-        this.#spring80.initialVelocity = this.boostVelocity ? -2.0 : -1.0;
+        this.#spring80.initialVelocity = this.boostVelocity ? -2.5 : -1.0;
     }
 
     pointerUp(_: PointerEvent): "success" | "abort" {
@@ -246,11 +246,11 @@ export class SpringPhysicsModel extends PhysicsModel {
         let velocity = findVelocity(this.pointerHistory);
         console.log("before: " + velocity);
         if(this.boostVelocity) {
-            velocity *= 4.0;
+            velocity *= 3.0;
             velocity = Math.max(velocity, 1.0);
         }
         console.log("post boost: " + velocity)
-        velocity = Math.min(velocity, 2.0);
+        velocity = Math.min(velocity, 2.5);
         console.log("post clamp: " + velocity);
 
         // TODO: we could use the event position (but maybe it's already sent via a prior touchmove?)
