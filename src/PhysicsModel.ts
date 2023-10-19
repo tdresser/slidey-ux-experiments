@@ -24,7 +24,8 @@ export abstract class PhysicsModel {
     parallax: boolean;
     limitFingerDrag: boolean;
     boostVelocity: boolean;
-    targetStopPercent: number
+    targetStopPercent: number;
+    loadStart: number = 0;
 
     constructor(init: PhysicsModelInit) {
         this.networkDelay = init.networkDelay;

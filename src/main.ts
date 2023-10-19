@@ -295,6 +295,7 @@ function plot() {
   ctx.lineWidth = 3;
 
   ctx.strokeStyle = 'black';
+  ctx.beginPath();
   ctx.moveTo(0, 0);
   for(var x=0; x<1000; x++) {
     ctx.lineTo(x, physicsModel.advance(x).fgOffset);
@@ -304,6 +305,7 @@ function plot() {
   // draw the stop point
   ctx.strokeStyle = 'red';
   let stop = width * parseFloat(settingTargetStop.value);
+  ctx.beginPath();
   ctx.moveTo(0, stop);
   ctx.lineTo(1000, stop);
   ctx.stroke();
@@ -311,6 +313,7 @@ function plot() {
   // draw the commit point
   ctx.strokeStyle = 'green';
   let commitDelay = bucket[parseInt(networkDelayInput.value)];
+  ctx.beginPath();
   ctx.moveTo(commitDelay, 0);
   ctx.lineTo(commitDelay, width);
   ctx.stroke();
