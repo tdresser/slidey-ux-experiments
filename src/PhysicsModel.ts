@@ -46,8 +46,9 @@ export abstract class PhysicsModel {
         return "success";
     }
     abstract updateDisplays(): void;
+    abstract setDefaultVelocity(): void;
 
-    committed() {
-        return (performance.now() - this.animationStartTime) >= this.networkDelay;
+    committed(rafTime: number) {
+        return (rafTime - this.animationStartTime) >= this.networkDelay;
     }
 };

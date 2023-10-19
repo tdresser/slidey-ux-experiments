@@ -278,6 +278,43 @@ function initPhysics(): PhysicsModel {
   });
 }
 
+function plot() {
+  let width = document.documentElement.getBoundingClientRect().width;
+  let physicsModel: PhysicsModel = initPhysics();
+
+  physicsModel.setDefaultVelocity();
+  physicsModel.startAnimating(0);
+
+  var c = document.getElementById("plot") as HTMLCanvasElement ?? fail();
+  let scale = c.width / 1000.0;
+  c.height = width * scale;
+  var ctx = c.getContext("2d");
+  if(!ctx) return;
+  ctx.scale(scale, scale);
+  ctx.moveTo(0, 0);
+  for(var x=0; x<1000; x++) {
+    ctx.lineTo(x, physicsModel.advance(x).fgOffset);
+  }
+  ctx.stroke();
+
+  // draw the stop point
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = 'blue';
+  let stop = width * parseFloat(settingTargetStop.value);
+  ctx.moveTo(0, stop);
+  ctx.lineTo(1000, stop);
+  ctx.stroke();
+
+  // draw the commit point
+  ctx.strokeStyle = 'green';
+  let commitDelay = bucket[parseInt(networkDelayInput.value)];
+  ctx.moveTo(commitDelay, 0);
+  ctx.lineTo(commitDelay, width);
+  ctx.stroke();
+
+}
+
+
 function updateDisplays() {
   let bucketIndex = parseInt(networkDelayInput.value);
   networkDelayDisplay.innerHTML = bucket_name[bucketIndex] + "=" + bucket[bucketIndex].toString();
@@ -288,6 +325,7 @@ function updateDisplays() {
   targetStopDisplay.innerHTML = `${100 * parseFloat(settingTargetStop.value)}`;
 
   physicsModel.updateDisplays();
+  plot();
 
   // This is a bit overkill, but with mode switching, these were sometimes getting out of sync.
   physicsModel = initPhysics();
@@ -324,11 +362,15 @@ function changeProgressAttribution() {
   progress_bar = progress.querySelector(".bar") as HTMLProgressElement;
 }
 
-
 function init() {
   networkDelayInput.addEventListener("input", updateDisplays);
   settingZoom.addEventListener("input", updateDisplays);
   settingTargetStop.addEventListener("input", updateDisplays);
+
+  let spring80FrequencyResponseInput = document.getElementById("spring80FrequencyResponse") as HTMLInputElement ?? fail();
+  let spring80DampingRatioInput = document.getElementById("spring80DampingRatio") as HTMLInputElement ?? fail();
+  spring80FrequencyResponseInput.addEventListener("input", updateDisplays);
+  spring80DampingRatioInput.addEventListener("input", updateDisplays);
 
   buttonTest.addEventListener("click", runTest);
   buttonSettings.addEventListener("click", stopTest);
@@ -342,8 +384,6 @@ function init() {
 
   settingProgressAttribution.addEventListener("change", changeProgressAttribution);
   updateDisplays();
-
-
 
   window.addEventListener("pointerdown", handlePointerDown);
   window.addEventListener("pointerup", handlePointerUp);

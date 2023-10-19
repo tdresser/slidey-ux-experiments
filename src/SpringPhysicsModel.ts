@@ -143,13 +143,13 @@ export class SpringPhysicsModel extends PhysicsModel {
 
     advance(rafTime: number): AdvanceResult {
         rafTime = rafTime;
-        if (!this.hasCommitted && this.committed()) {
+        if (!this.hasCommitted && this.committed(rafTime)) {
             // Switch springs!
             this.startAnimating(this.lastRaf || rafTime);
             this.hasCommitted = true;
             this.#spring100.initialVelocity = this.#spring80.velocity();
         }
-        const time = rafTime - this.animationStartTime;;
+        const time = rafTime - this.animationStartTime;
 
         let springResult: SpringPosition | null = null;
         if (this.hasAborted) {
@@ -206,6 +206,11 @@ export class SpringPhysicsModel extends PhysicsModel {
             return 0;
         }
         return 0.25 * (offset - this.maxOffset);
+    }
+
+    setDefaultVelocity(): void {
+        this.offset = 0;
+        this.#spring80.initialVelocity = -2.0;
     }
 
     pointerUp(_: PointerEvent): "success" | "abort" {
