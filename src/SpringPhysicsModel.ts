@@ -209,7 +209,7 @@ export class SpringPhysicsModel extends PhysicsModel {
     }
 
     setDefaultVelocity(): void {
-        this.offset = 0;
+        this.offset = this.maxOffset / 4; // assume a default of touch up at 25% of the width
         this.#spring80.initialVelocity = -2.0;
     }
 
