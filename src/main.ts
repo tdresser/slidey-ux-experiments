@@ -21,11 +21,11 @@ interface Screenshot {
 let screenshots: Screenshot[] = [
   { main: "resources/srp-couches.png" },
   { main: "resources/pants-hemming-srp.png", precommit: "resources/pants-srp.png" },
-  //{ main: "resources/srp-cats.png" },
-  //{ main: "resources/banana-pie-srp.png" },
+  { main: "resources/srp-cats.png" },
+  { main: "resources/banana-pie-srp.png" },
   { main: "resources/goo.gl-stock-a.png", precommit: "resources/goo.gl-stock-b.png" },
-  //{ main: "resources/news-frontpage.png" },
-  //{ main: "resources/news-article.png" },
+  { main: "resources/news-frontpage.png" },
+  { main: "resources/news-article.png" },
 ]
 let nextImgIndex = 0;
 
