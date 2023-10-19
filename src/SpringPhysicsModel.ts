@@ -251,6 +251,7 @@ export class SpringPhysicsModel extends PhysicsModel {
         }
         console.log("post boost: " + velocity)
         velocity = Math.min(velocity, 2.5);
+        velocity = Math.max(velocity, 0.3);
         console.log("post clamp: " + velocity);
 
         // TODO: we could use the event position (but maybe it's already sent via a prior touchmove?)
