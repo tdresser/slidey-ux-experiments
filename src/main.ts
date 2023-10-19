@@ -290,7 +290,11 @@ function plot() {
   c.height = width * scale;
   var ctx = c.getContext("2d");
   if(!ctx) return;
+
   ctx.scale(scale, scale);
+  ctx.lineWidth = 3;
+
+  ctx.strokeStyle = 'black';
   ctx.moveTo(0, 0);
   for(var x=0; x<1000; x++) {
     ctx.lineTo(x, physicsModel.advance(x).fgOffset);
@@ -298,8 +302,7 @@ function plot() {
   ctx.stroke();
 
   // draw the stop point
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = 'blue';
+  ctx.strokeStyle = 'red';
   let stop = width * parseFloat(settingTargetStop.value);
   ctx.moveTo(0, stop);
   ctx.lineTo(1000, stop);
