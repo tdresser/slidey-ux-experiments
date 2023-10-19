@@ -36,6 +36,11 @@ export abstract class PhysicsModel {
     }
 
     startAnimating(time: number) {
+        this.loadStart = time;
+        this.animationStartTime = time;
+        this.animationStartOffset = this.offset;
+    }
+    restartAnimating(time: number) {
         this.animationStartTime = time;
         this.animationStartOffset = this.offset;
     }
@@ -49,6 +54,6 @@ export abstract class PhysicsModel {
     abstract setDefaultVelocity(): void;
 
     committed(rafTime: number) {
-        return (rafTime - this.animationStartTime) >= this.networkDelay;
+        return (rafTime - this.loadStart) >= this.networkDelay;
     }
 };
