@@ -26,7 +26,6 @@ let screenshots = [
 ]
 let nextImgIndex = 0;
 
-
 const body = document.body ?? fail();
 const scrim = document.getElementById("scrim") ?? fail();
 const globalProgress = document.getElementById("globalProgress") ?? fail();
@@ -49,6 +48,7 @@ const settingProgressAttribution = document.getElementById("settingProgressAttri
 const settingUnloadHandler = document.getElementById("settingUnloadHandler") as HTMLInputElement ?? fail();
 const settingBoostVelocity = document.getElementById("settingBoostVelocity") as HTMLInputElement ?? fail();
 const settingTargetStop = document.getElementById("settingTargetStop") as HTMLInputElement ?? fail();
+const settingFadeForeground = document.getElementById("settingFadeForeground") as HTMLInputElement ?? fail();
 
 
 let progress = attributedProgress;
@@ -79,8 +79,7 @@ function handlePointerDown(e: PointerEvent) {
   physicsModel = initPhysics();
 }
 
-function offsetToScrimPercent(offset:number) {
-  let offsetAsPercent = offset / document.documentElement.getBoundingClientRect().width;
+function offsetToScrimPercent(offsetAsPercent:number) {
   return 0.3 + (1 - offsetAsPercent) * 0.5;
 }
 
@@ -93,9 +92,14 @@ function handlePointerMove(e: PointerEvent) {
 
   let moveResult = physicsModel.pointerMove(e);
   console.log(moveResult);
+
+  let fgOffsetAsPercent = moveResult.fgOffset / document.documentElement.getBoundingClientRect().width;
+
   document.documentElement.style.setProperty("--fg-offset", `${moveResult.fgOffset}px`);
   document.documentElement.style.setProperty("--bg-offset", `${moveResult.bgOffset}px`);
-  document.documentElement.style.setProperty("--scrim", `${offsetToScrimPercent(moveResult.fgOffset)}`);
+  document.documentElement.style.setProperty("--scrim", `${offsetToScrimPercent(fgOffsetAsPercent)}`);
+
+  applyFilter(fgOffsetAsPercent);
 
   updateZoom(moveResult.fgOffset);
   updatePop(moveResult.fgOffset);
@@ -203,7 +207,9 @@ function advance(rafTime: number, finished: (d?: unknown) => void) {
   const advanceResult = physicsModel.advance(rafTime);
   document.documentElement.style.setProperty("--fg-offset", `${advanceResult.fgOffset}px`);
   document.documentElement.style.setProperty("--bg-offset", `${advanceResult.bgOffset}px`);
-  const scrimBase = offsetToScrimPercent(advanceResult.fgOffset);
+  let fgOffsetAsPercent = advanceResult.fgOffset / document.documentElement.getBoundingClientRect().width;
+  const scrimBase = offsetToScrimPercent(fgOffsetAsPercent);
+  applyFilter(fgOffsetAsPercent);
   const scrim = scrimBase + 0.1*Math.sin((rafTime - startTime)/200);
   document.documentElement.style.setProperty("--scrim", `${scrim}`);
   updateZoom(advanceResult.fgOffset);
@@ -338,7 +344,15 @@ function updateDisplays() {
   finishAllAnimation();
 }
 
+// `progress` is in the 0-1 range meaning how far off is the top page
+function applyFilter(progress: number) {
+  if (settingFadeForeground.checked) {
+    frontimg.style.filter = `grayscale(${progress})`
+  }
+}
+
 function rotateImgs() {
+  frontimg.style.filter = ""
   frontimg.src = midimg.src;
   midimg.src = backimg.src;
   backimg.src = screenshots[nextImgIndex]
