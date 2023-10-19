@@ -369,6 +369,7 @@ function init() {
   networkDelayInput.addEventListener("input", updateDisplays);
   settingZoom.addEventListener("input", updateDisplays);
   settingTargetStop.addEventListener("input", updateDisplays);
+  settingBoostVelocity.addEventListener("input", updateDisplays);
 
   let spring80FrequencyResponseInput = document.getElementById("spring80FrequencyResponse") as HTMLInputElement ?? fail();
   let spring80DampingRatioInput = document.getElementById("spring80DampingRatio") as HTMLInputElement ?? fail();
