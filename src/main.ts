@@ -373,8 +373,11 @@ function init() {
 
   let spring80FrequencyResponseInput = document.getElementById("spring80FrequencyResponse") as HTMLInputElement ?? fail();
   let spring80DampingRatioInput = document.getElementById("spring80DampingRatio") as HTMLInputElement ?? fail();
+  let hookAtInput = document.getElementById("hookAt") as HTMLInputElement ?? fail();
+
   spring80FrequencyResponseInput.addEventListener("input", updateDisplays);
   spring80DampingRatioInput.addEventListener("input", updateDisplays);
+  hookAtInput.addEventListener("input", updateDisplays);
 
   buttonTest.addEventListener("click", runTest);
   buttonSettings.addEventListener("click", stopTest);

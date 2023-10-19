@@ -101,8 +101,14 @@ export class SpringPhysicsModel extends PhysicsModel {
     spring80DampingRatioInput = document.getElementById("spring80DampingRatio") as HTMLInputElement ?? fail();
     spring80DampingRatioDisplay = document.getElementById("spring80DampingRatioDisplay") as HTMLInputElement ?? fail();
 
+    hookAtInput = document.getElementById("hookAt") as HTMLInputElement ?? fail();
+    hookAtDisplay = document.getElementById("hookAtDisplay") as HTMLInputElement ?? fail();
+
     spring80FrequencyResponse = parseFloat(this.spring80FrequencyResponseInput.value);
     spring80DampingRatio = parseFloat(this.spring80DampingRatioInput.value);
+    hookAtPercent = parseFloat(this.hookAtInput.value);
+
+    hooked = false;
 
     constructor(init: PhysicsModelInit) {
         super(init);
@@ -110,6 +116,7 @@ export class SpringPhysicsModel extends PhysicsModel {
 
         this.spring80FrequencyResponseInput.addEventListener("input", () => this.updateDisplays());
         this.spring80DampingRatioInput.addEventListener("input", () => this.updateDisplays());
+        this.hookAtInput.addEventListener("input", () => this.updateDisplays());
 
         this.#spring100 = new Spring({
             frequencyResponse: 200,
@@ -139,6 +146,7 @@ export class SpringPhysicsModel extends PhysicsModel {
     updateDisplays() {
         this.spring80FrequencyResponseDisplay.innerHTML = this.spring80FrequencyResponseInput.value;
         this.spring80DampingRatioDisplay.innerHTML = this.spring80DampingRatioInput.value;
+        this.hookAtDisplay.innerHTML = this.hookAtInput.value;
     }
 
     advance(rafTime: number): AdvanceResult {
@@ -152,7 +160,9 @@ export class SpringPhysicsModel extends PhysicsModel {
         const time = rafTime - this.animationStartTime;
 
         let springResult: SpringPosition | null = null;
-        if (this.hasAborted) {
+        if (!this.hooked) {
+            this.offset = this.animationStartOffset - time * this.#spring80.initialVelocity;
+        } else if (this.hasAborted) {
             springResult = this.#spring0.position(this.animationStartOffset, time);
             // Prevent overshoot here.
             this.offset = Math.max(springResult.offset, 0);
@@ -164,9 +174,18 @@ export class SpringPhysicsModel extends PhysicsModel {
             this.offset = this.maxOffset - springResult.offset;
         }
 
+        if(!this.hooked && (this.offset > (this.maxOffset * this.hookAtPercent / 100.0))) {
+            // hook
+            this.startAnimating(this.lastRaf || rafTime);
+            this.hooked = true;
+            this.animationStartOffset = this.offset;
+        }
+
+        let done = springResult ? springResult.done : false;
+
         this.lastRaf = rafTime;
         return {
-            done: springResult.done && (this.hasCommitted || this.hasAborted),
+            done: done && (this.hasCommitted || this.hasAborted),
             fgOffset: this.offset,
             bgOffset: this.fgToBgOffset(this.offset),
             hasCommitted: this.hasCommitted
