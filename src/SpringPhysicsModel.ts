@@ -151,8 +151,23 @@ export class SpringPhysicsModel extends PhysicsModel {
 
     advance(rafTime: number): AdvanceResult {
         rafTime = rafTime;
+
+        if (!this.hasCommitted && this.committed(rafTime)) {
+            // Switch springs!
+            this.startAnimating(this.lastRaf || rafTime);
+            this.hasCommitted = true;
+            if(!this.hooked) {
+                this.hooked = true;
+                this.#spring100.initialVelocity = this.#spring80.initialVelocity;
+            } else {
+                this.#spring100.initialVelocity = this.#spring80.velocity(); 
+            }
+            if (isNaN(this.#spring100.initialVelocity)) {
+                this.#spring100.initialVelocity = -2.0;
+            }
+        }
         const time = rafTime - this.animationStartTime;
-        
+
         let springResult: SpringPosition | null = null;
         if (!this.hooked) {
             this.offset = this.animationStartOffset - time * this.#spring80.initialVelocity;
@@ -166,18 +181,6 @@ export class SpringPhysicsModel extends PhysicsModel {
         } else {
             springResult = this.#spring100.position(this.maxOffset - this.animationStartOffset, time);
             this.offset = this.maxOffset - springResult.offset;
-        }
-
-        if (!this.hasCommitted && this.committed(rafTime)) {
-            // Switch springs!
-            this.startAnimating(this.lastRaf || rafTime);
-            this.hasCommitted = true;
-            if(!this.hooked) {
-                this.hooked = true;
-                this.#spring100.initialVelocity = this.#spring80.initialVelocity;
-            } else {
-                this.#spring100.initialVelocity = this.#spring80.velocity(); 
-            }
         }
 
         if(!this.hooked && (this.offset > (this.maxOffset * this.hookAtPercent / 100.0))) {
