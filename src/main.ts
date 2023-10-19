@@ -13,16 +13,19 @@ let hasCommitted = false;
 let animatingLoadingBar = false;
 let animatingScrim = false;
 
-let screenshots = [
-  "resources/srp-cats.png",
-  "resources/srp-couches.png",
-  "resources/banana-pie-srp.png",
-  "resources/goo.gl-stock-a.png",
-  "resources/goo.gl-stock-b.png",
-  "resources/news-frontpage.png",
-  "resources/news-article.png",
-  "resources/pants-hemming-srp.png",
-  "resources/pants-srp.png",
+interface Screenshot {
+  main: string,
+  precommit?: string,
+}
+
+let screenshots: Screenshot[] = [
+  { main: "resources/srp-couches.png" },
+  { main: "resources/pants-hemming-srp.png", precommit: "resources/pants-srp.png" },
+  //{ main: "resources/srp-cats.png" },
+  //{ main: "resources/banana-pie-srp.png" },
+  { main: "resources/goo.gl-stock-a.png", precommit: "resources/goo.gl-stock-b.png" },
+  //{ main: "resources/news-frontpage.png" },
+  //{ main: "resources/news-article.png" },
 ]
 let nextImgIndex = 0;
 
@@ -41,7 +44,7 @@ const targetStopDisplay = document.getElementById("targetStopDisplay") ?? fail()
 
 const frontimg = document.getElementById("frontimg")?.querySelector("img") as HTMLImageElement ?? fail();
 const midimg = document.getElementById("midimg")?.querySelector("img") as HTMLImageElement ?? fail();
-const backimg = document.getElementById("backimg")?.querySelector("img") as HTMLImageElement ?? fail();
+const midimgprecommit = document.getElementById("midimgprecommit")?.querySelector("img") as HTMLImageElement ?? fail();
 
 const settingZoom = document.getElementById("settingZoom") as HTMLInputElement ?? fail();
 const settingProgressAttribution = document.getElementById("settingProgressAttribution") as HTMLInputElement ?? fail();
@@ -79,7 +82,7 @@ function handlePointerDown(e: PointerEvent) {
   physicsModel = initPhysics();
 }
 
-function offsetToScrimPercent(offsetAsPercent:number) {
+function offsetToScrimPercent(offsetAsPercent: number) {
   return 0.3 + (1 - offsetAsPercent) * 0.5;
 }
 
@@ -110,18 +113,18 @@ function updateZoom(offset: number) {
   let fgScale = 1.0 - (1.0 - pop) * offsetAsPercent;
   document.documentElement.style.setProperty("--fg-scale", `${fgScale}`);
 }
-function updatePop(offset:number) {
+function updatePop(offset: number) {
   let offsetAsPercent = offset / document.documentElement.getBoundingClientRect().width;
-  if(offsetAsPercent > 0.5) {
-    if(!popped) {
+  if (offsetAsPercent > 0.5) {
+    if (!popped) {
       let anim = document.documentElement.animate([{ '--bg-scale': pop }], { duration: 100, fill: "forwards" });
-      anim.finished.then(() => {anim.commitStyles(); anim.cancel();});
+      anim.finished.then(() => { anim.commitStyles(); anim.cancel(); });
       popped = true;
     }
   } else {
-    if(popped) {
+    if (popped) {
       let anim = document.documentElement.animate([{ '--bg-scale': zoom }], { duration: 100, fill: "forwards" });
-      anim.finished.then(() => {anim.commitStyles(); anim.cancel();});
+      anim.finished.then(() => { anim.commitStyles(); anim.cancel(); });
       popped = false;
     }
   }
@@ -147,7 +150,7 @@ function handlePointerUp(e: PointerEvent) {
     anim.finished.then(() => {
       anim.commitStyles();
       anim.cancel();
-      if(window.confirm("are you sure you want to leave this page?  It's very nice.")) {
+      if (window.confirm("are you sure you want to leave this page?  It's very nice.")) {
         let anim = document.documentElement.animate([{ '--fg-scale': scale, '--fg-offset': offset }], { duration: 200, fill: "forwards" });
         anim.finished.then(() => {
           anim.commitStyles();
@@ -165,12 +168,16 @@ function handlePointerUp(e: PointerEvent) {
 
 function animateOnCommit() {
   let anim = document.documentElement.animate([{ '--fg-scale': pop, '--bg-scale': 1.0 }], { duration: 100, fill: "forwards" });
-  anim.finished.then(() => {anim.commitStyles(); anim.cancel(); });
+  console.log("SET OPACITY TO 0");
+  anim.finished.then(() => { anim.commitStyles(); anim.cancel(); });
+  const midimgprecommitAnim = midimgprecommit.animate({ opacity: 0 }, { duration: 100, fill: "forwards" });
+  midimgprecommitAnim.finished.then(() => {midimgprecommitAnim.commitStyles(); midimgprecommitAnim.cancel()});
+
 }
 
 function animateOnAbort() {
   let anim = document.documentElement.animate([{ '--fg-scale': 1.0, '--bg-scale': zoom }], { duration: 100, fill: "forwards" });
-  anim.finished.then(() => {anim.commitStyles(); anim.cancel();});
+  anim.finished.then(() => { anim.commitStyles(); anim.cancel(); });
 }
 
 function animatePostCommitOrAbort() {
@@ -207,14 +214,15 @@ function advance(rafTime: number, finished: (d?: unknown) => void) {
   const advanceResult = physicsModel.advance(rafTime);
   document.documentElement.style.setProperty("--fg-offset", `${advanceResult.fgOffset}px`);
   document.documentElement.style.setProperty("--bg-offset", `${advanceResult.bgOffset}px`);
+
   let fgOffsetAsPercent = advanceResult.fgOffset / document.documentElement.getBoundingClientRect().width;
   const scrimBase = offsetToScrimPercent(fgOffsetAsPercent);
   applyFilter(fgOffsetAsPercent);
-  const scrim = scrimBase + 0.1*Math.sin((rafTime - startTime)/200);
+  const scrim = scrimBase + 0.1 * Math.sin((rafTime - startTime) / 200);
   document.documentElement.style.setProperty("--scrim", `${scrim}`);
   updateZoom(advanceResult.fgOffset);
-  if (rafTime-startTime > 800) {
-     progress.style.display = "block";
+  if (rafTime - startTime > 800) {
+    progress.style.display = "block";
   }
   if (advanceResult.hasCommitted && !hasCommitted) {
     animateOnCommit();
@@ -246,6 +254,7 @@ function finishScrimAnimation() {
   document.documentElement.style.setProperty("--scrim", "0.0");
   document.documentElement.style.setProperty("--bg-scale", zoom.toString());
   document.documentElement.style.setProperty("--fg-scale", "1.0");
+  midimgprecommit.style.opacity = "1";
 
   if (aborting) {
     document.documentElement.style.setProperty("--main-background-color", lastColor);
@@ -295,7 +304,7 @@ function plot() {
   let scale = c.width / 1000.0;
   c.height = width * scale;
   var ctx = c.getContext("2d");
-  if(!ctx) return;
+  if (!ctx) return;
 
   ctx.scale(scale, scale);
   ctx.lineWidth = 3;
@@ -303,7 +312,7 @@ function plot() {
   ctx.strokeStyle = 'black';
   ctx.beginPath();
   ctx.moveTo(0, 0);
-  for(var x=0; x<1000; x++) {
+  for (var x = 0; x < 1000; x++) {
     ctx.lineTo(x, physicsModel.advance(x).fgOffset);
   }
   ctx.stroke();
@@ -330,8 +339,8 @@ function plot() {
 function updateDisplays() {
   let bucketIndex = parseInt(networkDelayInput.value);
   networkDelayDisplay.innerHTML = bucket_name[bucketIndex] + "=" + bucket[bucketIndex].toString();
-  zoom = parseInt(settingZoom.value)/100.0;
-  pop = zoom + (1.0 - zoom)/3; // 1/3 betwen zoom to 1.0
+  zoom = parseInt(settingZoom.value) / 100.0;
+  pop = zoom + (1.0 - zoom) / 3; // 1/3 betwen zoom to 1.0
   zoomDisplay.innerHTML = settingZoom.value.toString();
 
   targetStopDisplay.innerHTML = `${100 * parseFloat(settingTargetStop.value)}`;
@@ -354,8 +363,9 @@ function applyFilter(progress: number) {
 function rotateImgs() {
   frontimg.style.filter = ""
   frontimg.src = midimg.src;
-  midimg.src = backimg.src;
-  backimg.src = screenshots[nextImgIndex]
+  midimg.src = screenshots[nextImgIndex].main;
+  midimgprecommit.src = screenshots[nextImgIndex].precommit ?? "";
+
   nextImgIndex = (nextImgIndex + 1) % screenshots.length;
 }
 
@@ -399,11 +409,10 @@ function init() {
   buttonTest.addEventListener("click", runTest);
   buttonSettings.addEventListener("click", stopTest);
 
-  frontimg.src = screenshots[nextImgIndex];
+  frontimg.src = screenshots[nextImgIndex].main;
   nextImgIndex = (nextImgIndex + 1) % screenshots.length;
-  midimg.src = screenshots[nextImgIndex];
-  nextImgIndex = (nextImgIndex + 1) % screenshots.length;
-  backimg.src = screenshots[nextImgIndex];
+  midimg.src = screenshots[nextImgIndex].main;
+  midimgprecommit.src = screenshots[nextImgIndex].precommit ?? "";
   nextImgIndex = (nextImgIndex + 1) % screenshots.length;
 
   settingProgressAttribution.addEventListener("change", changeProgressAttribution);

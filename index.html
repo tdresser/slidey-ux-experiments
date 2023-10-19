@@ -52,7 +52,7 @@
 
         <h2>Spring Damping Ratio: <span id="spring80DampingRatioDisplay"></span></h2>
         <input id="spring80DampingRatio" type="range" min="0.2" max="1.2" value="0.5" step="0.01">
-      
+
         <h2>Hook At: <span id="hookAtDisplay"></span>%</h2>
         <input id="hookAt" type="range" min="0" max="90" value="0" step="5">
       </div>
@@ -76,15 +76,15 @@
     <canvas id="plot" width="200px" height="100px" style="border:1px solid #000000;"></canvas>
   </div>
   <div id=screenshots class=touch-target style=display:none>
-    <div class=screenshot_container id=backimg>
-      <img class=screenshot style=display:none src=/resources/srp-cats.png>
-    </div>
     <div class=screenshot_container id=midimg>
       <img class=screenshot src=/resources/srp-couches.png>
       <div id="scrim" style="display: none"></div>
       <div id="attributedProgress" style="display:none">
         <progress style="width:100%" class="bar pure-material-progress-linear"/>
       </div>
+    </div>
+    <div class=screenshot_container id=midimgprecommit>
+      <img class=screenshot src=/resources/srp-cats.png>
     </div>
     <div class=screenshot_container id=frontimg>
       <img class=screenshot src=resources/srp-cats.png>
