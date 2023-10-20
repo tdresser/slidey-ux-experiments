@@ -56,8 +56,8 @@ const settingFadeForeground = document.getElementById("settingFadeForeground") a
 
 let progress = attributedProgress;
 let progress_bar = progress.querySelector(".bar") as HTMLProgressElement;
+let globalBar = globalProgress.querySelector(".bar") as HTMLProgressElement;
 
-let lastColor = "lightblue";
 
 let startTime = 0;
 let commitTime = 0;
@@ -71,13 +71,18 @@ let pop = 1.0;
 
 function delayToFullLoadMs() {
   let commitDelay = bucket[parseInt(networkDelayInput.value)];
-  return commitDelay * 2;
+  return Math.min(Math.max(commitDelay + 500, commitDelay * 2), commitDelay + 1000);
 }
 
 function handlePointerDown(e: PointerEvent) {
-  if ((e.target as HTMLElement)?.classList[0] != "screenshot" || animating) {
+  if ((e.target as HTMLElement)?.classList[0] != "screenshot" || (animating && !animatingLoadingBar)) {
     return;
   }
+
+  // Stop all animations if we're starting a new one.
+  aborting = true;
+  finishAllAnimation();
+
   pointingDown = true;
   physicsModel = initPhysics();
 }
@@ -195,15 +200,20 @@ function animatePostCommitOrAbort() {
 }
 
 function animateLoadingProgressBar() {
+  if (!animatingLoadingBar) {
+    return;
+  }
+
   let currentTime = performance.now();
   if (currentTime >= loadTime) {
     finishLoadingBarAnimation();
     return;
   }
+  console.log("tick loading bar")
 
-  progress.style.display = "block";
-  progress_bar.max = loadTime - startTime;
-  progress_bar.value = currentTime - startTime;
+  globalProgress.style.display = "block";
+  globalBar.max = loadTime - startTime;
+  globalBar.value = currentTime - startTime;
   requestAnimationFrame(animateLoadingProgressBar);
 }
 
@@ -256,30 +266,33 @@ function finishScrimAnimation() {
   document.documentElement.style.setProperty("--fg-scale", "1.0");
   midimgprecommit.style.opacity = "1";
 
-  if (aborting) {
-    document.documentElement.style.setProperty("--main-background-color", lastColor);
-    aborting = false;
-  } else {
+  if (!aborting) {
     rotateImgs();
   }
+  aborting = false;
 
   if (!animatingLoadingBar)
     animating = false;
 }
 
 function finishLoadingBarAnimation() {
+  console.log("finishing loading bar anim");
   animatingLoadingBar = false;
   progress.style.display = "none";
   progress_bar.removeAttribute('value');
   progress_bar.removeAttribute('max');
+
+  globalProgress.style.display = "none";
+  globalBar.removeAttribute("value");
+  globalBar.removeAttribute("max");
 
   if (!animatingScrim)
     animating = false;
 }
 
 function finishAllAnimation() {
-  finishScrimAnimation();
   finishLoadingBarAnimation();
+  finishScrimAnimation();
 }
 
 function initPhysics(): PhysicsModel {
