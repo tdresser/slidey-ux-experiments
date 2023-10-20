@@ -150,8 +150,7 @@ function handlePointerUp(e: PointerEvent) {
   } else if (settingUnloadHandler.checked) {
     let offset = document.documentElement.style.getPropertyValue("--fg-offset");
     let scale = document.documentElement.style.getPropertyValue("--fg-scale");
-    let p20 = document.documentElement.getBoundingClientRect().width * 10 / 100;
-    let anim = document.documentElement.animate([{ '--fg-scale': 1.0, '--fg-offset': p20 + 'px' }], { duration: 300, fill: "forwards" });
+    let anim = document.documentElement.animate([{ '--fg-scale': 1.0, '--fg-offset': '0px' }], { duration: 300, fill: "forwards" });
     anim.finished.then(() => {
       anim.commitStyles();
       anim.cancel();
