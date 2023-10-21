@@ -385,6 +385,7 @@ function runTest() {
   settingsPanel.style.display = "none";
   scrim.style.display = "block";
   screenshotsContainer.style.display = "block";
+  document.documentElement.style.setProperty("--main-background-color", `black`);
   body.classList.add("test");
 }
 
@@ -392,6 +393,7 @@ function stopTest() {
   settingsPanel.style.display = "flex";
   scrim.style.display = "none";
   screenshotsContainer.style.display = "none";
+  document.documentElement.style.setProperty("--main-background-color", `white`);
   body.classList.remove("test");
 }
 
