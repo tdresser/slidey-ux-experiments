@@ -154,7 +154,7 @@ body.test {
   transform: translateX(var(--fg-offset)) translateY(var(--vertical-offset)) scale(var(--fg-scale));
 }
 
-#midimg, #midimgprecommit {
+#midimg {
   transform: translateX(var(--bg-offset)) scale(var(--bg-scale));
 }
 
