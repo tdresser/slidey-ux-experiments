@@ -385,7 +385,7 @@ function runTest() {
   settingsPanel.style.display = "none";
   scrim.style.display = "block";
   screenshotsContainer.style.display = "block";
-  document.documentElement.style.setProperty("--main-background-color", `black`);
+  document.documentElement.style.setProperty("--main-background-color", `#202020`);
   body.classList.add("test");
 }
 
