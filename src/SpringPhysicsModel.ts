@@ -106,9 +106,12 @@ export class SpringPhysicsModel extends PhysicsModel {
 
     spring80FrequencyResponse = parseFloat(this.spring80FrequencyResponseInput.value);
     spring80DampingRatio = parseFloat(this.spring80DampingRatioInput.value);
-    hookAtPercent = parseFloat(this.hookAtInput.value);
 
+    hookAtPercent = parseFloat(this.hookAtInput.value);
     hooked = false;
+
+    dontBounceBackpageInput = document.getElementById("settingDontBounceBackpage") as HTMLInputElement ?? fail();
+    dontBounceBackpage = !!this.dontBounceBackpageInput.checked;
 
     constructor(init: PhysicsModelInit) {
         super(init);
@@ -117,6 +120,7 @@ export class SpringPhysicsModel extends PhysicsModel {
         this.spring80FrequencyResponseInput.addEventListener("input", () => this.updateDisplays());
         this.spring80DampingRatioInput.addEventListener("input", () => this.updateDisplays());
         this.hookAtInput.addEventListener("input", () => this.updateDisplays());
+        this.dontBounceBackpageInput.addEventListener("input", () => this.updateDisplays());
 
         this.#spring100 = new Spring({
             frequencyResponse: 200,
@@ -147,6 +151,7 @@ export class SpringPhysicsModel extends PhysicsModel {
         this.spring80FrequencyResponseDisplay.innerHTML = this.spring80FrequencyResponseInput.value;
         this.spring80DampingRatioDisplay.innerHTML = this.spring80DampingRatioInput.value;
         this.hookAtDisplay.innerHTML = this.hookAtInput.value;
+        this.dontBounceBackpage = !!this.dontBounceBackpageInput.checked;
     }
 
     advance(rafTime: number): AdvanceResult {
@@ -154,7 +159,7 @@ export class SpringPhysicsModel extends PhysicsModel {
 
         if (!this.hasCommitted && this.committed(rafTime)) {
             // Switch springs!
-            this.startAnimating(this.lastRaf || rafTime);
+            this.restartAnimating(this.lastRaf || rafTime);
             this.hasCommitted = true;
             if(!this.hooked) {
                 this.hooked = true;
@@ -190,13 +195,20 @@ export class SpringPhysicsModel extends PhysicsModel {
             this.animationStartOffset = this.offset;
         }
 
-        let done = springResult ? springResult.done : false;
+        let done = springResult ? springResult.done : false;   
+
+        let bgOffset = this.offset;
+        if (this.dontBounceBackpage) {          
+            springResult = this.#spring0.position(this.maxOffset - this.animationStartOffset, rafTime - this.loadStart);
+            // Prevent overshoot here.
+            bgOffset = this.maxOffset - Math.max(springResult.offset, 0);
+        }
 
         this.lastRaf = rafTime;
         return {
             done: done && (this.hasCommitted || this.hasAborted),
             fgOffset: this.offset,
-            bgOffset: this.fgToBgOffset(this.offset),
+            bgOffset: this.fgToBgOffset(bgOffset),
             hasCommitted: this.hasCommitted
         }
     }
@@ -253,6 +265,8 @@ export class SpringPhysicsModel extends PhysicsModel {
         velocity = Math.min(velocity, 2.5);
         velocity = Math.max(velocity, 0.3);
         console.log("post clamp: " + velocity);
+
+        this.#spring0.initialVelocity = -velocity
 
         // TODO: we could use the event position (but maybe it's already sent via a prior touchmove?)
         // If the offset + 100ms at current velocity < threshold, abort.
