@@ -41,6 +41,7 @@ const buttonSettings = document.getElementById("buttonSettings") as HTMLInputEle
 const settingsPanel = document.getElementById("settingsPanel") ?? fail();
 const screenshotsContainer = document.getElementById("screenshots") ?? fail();
 const targetStopDisplay = document.getElementById("targetStopDisplay") ?? fail();
+const dragCurveInput = document.getElementById("dragCurve") as HTMLSelectElement ?? fail();
 
 const frontimg = document.getElementById("frontimg")?.querySelector("img") as HTMLImageElement ?? fail();
 const midimg = document.getElementById("midimg")?.querySelector("img") as HTMLImageElement ?? fail();
@@ -60,7 +61,6 @@ let globalBar = globalProgress.querySelector(".bar") as HTMLProgressElement;
 
 
 let startTime = 0;
-let commitTime = 0;
 let loadTime = 0;
 
 let bucket_name = ["P25", "P50", "P75", "P90", "P95", "P99"];
@@ -100,7 +100,6 @@ function handlePointerMove(e: PointerEvent) {
   }
 
   let moveResult = physicsModel.pointerMove(e);
-  console.log(moveResult);
 
   let fgOffsetAsPercent = moveResult.fgOffset / document.documentElement.getBoundingClientRect().width;
 
@@ -173,10 +172,9 @@ function handlePointerUp(e: PointerEvent) {
 
 function animateOnCommit() {
   let anim = document.documentElement.animate([{ '--fg-scale': pop, '--bg-scale': 1.0 }], { duration: 100, fill: "forwards" });
-  console.log("SET OPACITY TO 0");
   anim.finished.then(() => { anim.commitStyles(); anim.cancel(); });
   const midimgprecommitAnim = midimgprecommit.animate({ opacity: 0 }, { duration: 100, fill: "forwards" });
-  midimgprecommitAnim.finished.then(() => {midimgprecommitAnim.commitStyles(); midimgprecommitAnim.cancel()});
+  midimgprecommitAnim.finished.then(() => { midimgprecommitAnim.commitStyles(); midimgprecommitAnim.cancel() });
 
 }
 
@@ -209,7 +207,6 @@ function animateLoadingProgressBar() {
     finishLoadingBarAnimation();
     return;
   }
-  console.log("tick loading bar")
 
   globalProgress.style.display = "block";
   globalBar.max = loadTime - startTime;
@@ -248,9 +245,7 @@ function advance(rafTime: number, finished: (d?: unknown) => void) {
 function startAnimation() {
   animating = true;
   startTime = performance.now();
-  commitTime = startTime + parseFloat(networkDelayInput.value);
   loadTime = startTime + delayToFullLoadMs();
-  console.log("start : " + startTime + " commit : " + commitTime + " load : " + loadTime);
   physicsModel.startAnimating(startTime);
   return new Promise(resolve => {
     advance(performance.now(), resolve);
@@ -276,7 +271,6 @@ function finishScrimAnimation() {
 }
 
 function finishLoadingBarAnimation() {
-  console.log("finishing loading bar anim");
   animatingLoadingBar = false;
   progress.style.display = "none";
   progress_bar.removeAttribute('value');
@@ -299,9 +293,32 @@ function initPhysics(): PhysicsModel {
   const width = document.documentElement.getBoundingClientRect().width;
   const targetStopPercent = parseFloat(settingTargetStop.value);
 
-  let fingerDragCurve = (x:number) => x;
-  // Linear to targetStopPercent; assumes no "overdrag" like on mobile sim
-  fingerDragCurve = (x:number) => x * targetStopPercent;
+  let fingerDragCurve = (x: number) => x;
+  if (dragCurveInput.value == "linear80") {
+    // Linear to targetStopPercent; assumes no "overdrag" like on mobile sim
+    fingerDragCurve = (x: number) => x * targetStopPercent;
+  } else if (dragCurveInput.value == "linearelastic") {
+    fingerDragCurve = (x: number) => {
+      const percent = x / width;
+      const startSlowing = 0.7;
+      if (percent < startSlowing) {
+        return x;
+      } else {
+        return (startSlowing + (percent - startSlowing) / 20) * width;
+      }
+    }
+  } else if (dragCurveInput.value == "snapto") {
+    fingerDragCurve = (x: number) => {
+      const percent = x / width;
+      const startSlowing = 0.3;
+      const speedUpFactor = targetStopPercent / startSlowing;
+      if (percent < startSlowing) {
+        return x * speedUpFactor;
+      } else {
+        return (startSlowing * speedUpFactor + (percent - startSlowing) / 20) * width;
+      }
+    };
+  }
 
   return new SpringPhysicsModel({
     networkDelay: bucket[parseInt(networkDelayInput.value)],
@@ -419,6 +436,7 @@ function init() {
   settingZoom.addEventListener("input", updateDisplays);
   settingTargetStop.addEventListener("input", updateDisplays);
   settingBoostVelocity.addEventListener("input", updateDisplays);
+  dragCurveInput.addEventListener("input", updateDisplays);
 
   let spring80FrequencyResponseInput = document.getElementById("spring80FrequencyResponse") as HTMLInputElement ?? fail();
   let spring80DampingRatioInput = document.getElementById("spring80DampingRatio") as HTMLInputElement ?? fail();

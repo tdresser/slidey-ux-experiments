@@ -253,15 +253,12 @@ export class SpringPhysicsModel extends PhysicsModel {
     pointerUp(_: PointerEvent): "success" | "abort" {
         // Don't let us overshoot too far. TODO: tune this.
         let velocity = findVelocity(this.pointerHistory);
-        console.log("before: " + velocity);
         if(this.boostVelocity) {
             velocity *= 3.0;
             velocity = Math.max(velocity, 1.0);
         }
-        console.log("post boost: " + velocity)
         velocity = Math.min(velocity, 2.5);
         velocity = Math.max(velocity, 0.3);
-        console.log("post clamp: " + velocity);
 
         this.#spring0.initialVelocity = -velocity
 

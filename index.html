@@ -77,6 +77,17 @@
         <input id="settingTargetStop" type="range" min="0.7" max="0.95" value="0.8" step="0.05">
       </div>
     </div>
+    <div class="slider-window">
+      <div class="slider-label">
+        <h2>drag curve:</h2>
+        <select id="dragCurve">
+          <option value="linear80">linear with max of 80%</option>
+          <option value="linear100">linear</option>
+          <option value="linearelastic">linear with elastic overscroll</option>
+          <option value="snapto">snap to target</option>
+        </select>
+      </div>
+    </div>
     <canvas id="plot" width="200px" height="100px" style="border:1px solid #000000;"></canvas>
   </div>
   <div id=screenshots class=touch-target style=display:none>
