@@ -109,6 +109,7 @@ export class SpringPhysicsModel extends PhysicsModel {
 
     hookAtPercent = parseFloat(this.hookAtInput.value);
     hooked = false;
+    pointerDownX: number = 0;
 
     dontBounceBackpageInput = document.getElementById("settingDontBounceBackpage") as HTMLInputElement ?? fail();
     dontBounceBackpage = !!this.dontBounceBackpageInput.checked;
@@ -165,7 +166,7 @@ export class SpringPhysicsModel extends PhysicsModel {
                 this.hooked = true;
                 this.#spring100.initialVelocity = this.#spring80.initialVelocity;
             } else {
-                this.#spring100.initialVelocity = this.#spring80.velocity(); 
+                this.#spring100.initialVelocity = this.#spring80.velocity();
             }
             if (isNaN(this.#spring100.initialVelocity)) {
                 this.#spring100.initialVelocity = -2.0;
@@ -195,10 +196,10 @@ export class SpringPhysicsModel extends PhysicsModel {
             this.animationStartOffset = this.offset;
         }
 
-        let done = springResult ? springResult.done : false;   
+        let done = springResult ? springResult.done : false;
 
         let bgOffset = this.offset;
-        if (this.dontBounceBackpage) {          
+        if (this.dontBounceBackpage) {
             springResult = this.#spring0.position(this.maxOffset - this.animationStartOffset, rafTime - this.loadStart);
             // Prevent overshoot here.
             bgOffset = this.maxOffset - Math.max(springResult.offset, 0);
@@ -213,8 +214,12 @@ export class SpringPhysicsModel extends PhysicsModel {
         }
     }
 
+    pointerDown(e:PointerEvent) {
+        this.pointerDownX = e.clientX;
+    }
+
     pointerMove(e: PointerEvent): AdvanceResult {
-        this.offset = this.fingerDragAdd(this.offset, e.movementX);
+        this.offset = this.fingerDragCurve(e.clientX - this.pointerDownX);
         this.pointerHistory.push({
             offset: this.offset,
             time: e.timeStamp
@@ -231,14 +236,6 @@ export class SpringPhysicsModel extends PhysicsModel {
             bgOffset: this.fgToBgOffset(this.offset),
             hasCommitted: false
         }
-    }
-
-    fingerDragAdd(offset: number, movement: number): number {
-        if (!this.limitFingerDrag) {
-            return offset + movement;
-        }
-        // Linear to targetStopPercent; assumes no "overdrag" like on mobile sim
-        return offset + this.targetStopPercent * movement;
     }
 
     fgToBgOffset(offset: number): number {

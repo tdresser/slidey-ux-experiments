@@ -85,6 +85,7 @@ function handlePointerDown(e: PointerEvent) {
 
   pointingDown = true;
   physicsModel = initPhysics();
+  physicsModel.pointerDown(e);
 }
 
 function offsetToScrimPercent(offsetAsPercent: number) {
@@ -295,13 +296,20 @@ function finishAllAnimation() {
 }
 
 function initPhysics(): PhysicsModel {
+  const width = document.documentElement.getBoundingClientRect().width;
+  const targetStopPercent = parseFloat(settingTargetStop.value);
+
+  let fingerDragCurve = (x:number) => x;
+  // Linear to targetStopPercent; assumes no "overdrag" like on mobile sim
+  fingerDragCurve = (x:number) => x * targetStopPercent;
+
   return new SpringPhysicsModel({
     networkDelay: bucket[parseInt(networkDelayInput.value)],
-    targetOffset: document.documentElement.getBoundingClientRect().width,
+    targetOffset: width,
     parallax: true,
-    limitFingerDrag: true,
+    fingerDragCurve: fingerDragCurve,
     boostVelocity: !!settingBoostVelocity.checked,
-    targetStopPercent: parseFloat(settingTargetStop.value)
+    targetStopPercent: targetStopPercent
   });
 }
 

@@ -10,7 +10,7 @@ export interface PhysicsModelInit {
     networkDelay: number,
     targetOffset: number,
     parallax: boolean,
-    limitFingerDrag: boolean,
+    fingerDragCurve: (x:number) => number,
     boostVelocity: boolean
     targetStopPercent: number
 }
@@ -22,7 +22,7 @@ export abstract class PhysicsModel {
     maxOffset: number;
     offset: number = 0;
     parallax: boolean;
-    limitFingerDrag: boolean;
+    fingerDragCurve: (x:number) => number;
     boostVelocity: boolean;
     targetStopPercent: number;
     loadStart: number = 0;
@@ -31,7 +31,7 @@ export abstract class PhysicsModel {
         this.networkDelay = init.networkDelay;
         this.maxOffset = init.targetOffset;
         this.parallax = init.parallax;
-        this.limitFingerDrag = init.limitFingerDrag;
+        this.fingerDragCurve = init.fingerDragCurve;
         this.boostVelocity = init.boostVelocity;
         this.targetStopPercent = init.targetStopPercent;
     }
@@ -47,6 +47,7 @@ export abstract class PhysicsModel {
     }
 
     abstract advance(rafTime: number): AdvanceResult;
+    abstract pointerDown(e:PointerEvent): void;
     abstract pointerMove(e:PointerEvent): AdvanceResult;
     pointerUp(_:PointerEvent): "success" | "abort" {
         return "success";
