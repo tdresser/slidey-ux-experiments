@@ -114,6 +114,12 @@ export class SpringPhysicsModel extends PhysicsModel {
     dontBounceBackpageInput = document.getElementById("settingDontBounceBackpage") as HTMLInputElement ?? fail();
     dontBounceBackpage = !!this.dontBounceBackpageInput.checked;
 
+    wobbleInput = document.getElementById("settingWobble") as HTMLInputElement ?? fail();
+    wobble = !!this.wobbleInput.checked;
+
+    slowDriftInput = document.getElementById("settingSlowDrift") as HTMLInputElement ?? fail();
+    slowDrift = !!this.slowDriftInput.checked;
+
     constructor(init: PhysicsModelInit) {
         super(init);
         this.animationStartOffset = 0;
@@ -122,6 +128,8 @@ export class SpringPhysicsModel extends PhysicsModel {
         this.spring80DampingRatioInput.addEventListener("input", () => this.updateDisplays());
         this.hookAtInput.addEventListener("input", () => this.updateDisplays());
         this.dontBounceBackpageInput.addEventListener("input", () => this.updateDisplays());
+        this.wobbleInput.addEventListener("input", () => this.updateDisplays());
+        this.slowDriftInput.addEventListener("input", () => this.updateDisplays());
 
         this.#spring100 = new Spring({
             frequencyResponse: 200,
@@ -153,6 +161,8 @@ export class SpringPhysicsModel extends PhysicsModel {
         this.spring80DampingRatioDisplay.innerHTML = this.spring80DampingRatioInput.value;
         this.hookAtDisplay.innerHTML = this.hookAtInput.value;
         this.dontBounceBackpage = !!this.dontBounceBackpageInput.checked;
+        this.wobble = !!this.wobbleInput.checked;
+        this.slowDrift = !!this.slowDriftInput.checked;
     }
 
     advance(rafTime: number): AdvanceResult {
@@ -197,6 +207,16 @@ export class SpringPhysicsModel extends PhysicsModel {
         }
 
         let done = springResult ? springResult.done : false;
+
+        if (this.wobble && !this.hasCommitted) {
+            // wobble a distance of 2% of width about 1 cycle per half second
+            this.offset += this.maxOffset * 0.02 * Math.sin(2*Math.PI*time/1000);
+        }
+        if (this.slowDrift && !this.hasCommitted) {
+            // drift slowly towards the right getting slower as you go
+            this.offset -= this.maxOffset * 0.25 * 1000.0/(time+1000);
+            console.log(1000.0/(time+1000));
+        }
 
         let bgOffset = this.offset;
         if (this.dontBounceBackpage) {
