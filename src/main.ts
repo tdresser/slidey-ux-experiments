@@ -94,10 +94,13 @@ function offsetToScrimPercent(offsetAsPercent: number) {
 
 let popped = false;
 
+let lastPointerMoveEvent : PointerEvent;
+
 function handlePointerMove(e: PointerEvent) {
   if (!pointingDown) {
     return;
   }
+  lastPointerMoveEvent = e;
 
   let moveResult = physicsModel.pointerMove(e);
 
@@ -308,15 +311,86 @@ function initPhysics(): PhysicsModel {
       }
     }
   } else if (dragCurveInput.value == "snapto") {
+    let lastOffset = 0;
+    let lastAccumulation = 0;
+    let lastX = -999;
+    let snapping = false;
+    let snapTarget = -1;
+    let snapSpeed = 4;
+    let direction = 1;
+    let dxHistory : number[] = [];
+
     fingerDragCurve = (x: number) => {
-      const percent = x / width;
-      const startSlowing = 0.3;
-      const speedUpFactor = targetStopPercent / startSlowing;
-      if (percent < startSlowing) {
-        return x * speedUpFactor;
-      } else {
-        return (startSlowing * speedUpFactor + (percent - startSlowing) / 20) * width;
+      if (lastX == -999)
+        lastX = x;
+      let dx = x - lastX;
+      lastX = x;
+
+      // If we're snapping, just move quick to target.
+      if (snapping) {
+        if (lastOffset < snapTarget * width) {
+          lastOffset += snapSpeed;
+          if (lastOffset >= snapTarget * width) {
+            lastOffset = snapTarget * width;
+            snapping = false;
+            lastAccumulation = 0;
+          }
+        } else if (lastOffset > snapTarget * width) {
+          lastOffset -= snapSpeed;
+          if (lastOffset <= snapTarget * width) {
+            lastOffset = snapTarget * width;
+            snapping = false;
+            lastAccumulation = 0;
+          }
+        }
       }
+
+      // If we're still snapping, it means we need to animate.
+      if (snapping) {
+        requestAnimationFrame(() => {
+          handlePointerMove(lastPointerMoveEvent);
+        });
+        return lastOffset;
+      } 
+
+      // Debounce direction.
+      dxHistory.push(dx);
+      if (dxHistory.length > 5)
+        dxHistory.shift();
+      let oppositeCount = 0;
+      for (let i of dxHistory) {
+        if (i * direction < 0)
+          oppositeCount++
+      }
+      // Reset accumulation if we're sure we switched directions.
+      if (oppositeCount == dxHistory.length) {
+        direction = -direction;
+        lastAccumulation = 0;
+      }
+
+      lastAccumulation += dx;
+
+      // Snap to 80 if we moved 10% of the screen to the right.
+      if (snapTarget < targetStopPercent && lastAccumulation / width > 0.1) {
+        snapTarget = targetStopPercent;
+        snapping = true;
+        requestAnimationFrame(() => {
+          handlePointerMove(lastPointerMoveEvent);
+        });
+      }
+      // Snap back to 0 if we moved 5% of the screen to the left.
+      else if (snapTarget > 0 && lastAccumulation / width < -0.05) {
+        snapTarget = 0;
+        snapping = true;
+        requestAnimationFrame(() => {
+          handlePointerMove(lastPointerMoveEvent);
+        });
+      }
+      // We're not snapping, so move very gradually
+      else {
+        lastOffset += 0.1 * dx;
+      }
+      return lastOffset;
     };
   }
 
