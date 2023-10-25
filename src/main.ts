@@ -128,6 +128,8 @@ function handlePointerMove(e: PointerEvent) {
   updatePop(moveResult.fgOffset);
 }
 
+let chevronPop : boolean = false;
+
 function updateChevron(percent: number) {
   if (!settingChevron.checked)
     percent = 0;
@@ -138,13 +140,18 @@ function updateChevron(percent: number) {
     chevronContainer.style.borderRadius = "50%";
     chevronContainer.style.width = getComputedStyle(chevronContainer).height;
     chevron.style.opacity = "1";
-    navigator.vibrate(1);
+    if (!chevronPop) {
+      navigator.vibrate(1);
+      chevronPop = true;
+    }
   } else if (percent > 0.1) {
+    chevronPop = false;
     chevronContainer.style.left = "1px";
     chevronContainer.style.borderRadius = "15px"
     chevronContainer.style.width = `${chevronContainer.getBoundingClientRect().height * percent / 0.7}px`;
     chevron.style.opacity = `${Math.min(Math.max((percent - 0.5) / 0.2, 0), 1)}`;
   } else {
+    chevronPop = false;
     chevronContainer.style.display = "none";
   }
 }
