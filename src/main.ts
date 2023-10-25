@@ -58,7 +58,7 @@ const settingTargetStop = document.getElementById("settingTargetStop") as HTMLIn
 const settingFadeForeground = document.getElementById("settingFadeForeground") as HTMLInputElement ?? fail();
 const settingWobble = document.getElementById("settingWobble") as HTMLInputElement ?? fail();
 const settingSlowDrift = document.getElementById("settingSlowDrift") as HTMLInputElement ?? fail();
-
+const settingPulseScrim = document.getElementById("settingPulseScrim") as HTMLInputElement ?? fail();
 
 let progress = attributedProgress;
 let progress_bar = progress.querySelector(".bar") as HTMLProgressElement;
@@ -267,6 +267,8 @@ function animateLoadingProgressBar() {
 let physicsModel: PhysicsModel = initPhysics();
 finishAllAnimation();
 
+let pulseScrim = !!settingPulseScrim.checked;
+
 function advance(rafTime: number, finished: (d?: unknown) => void) {
   const advanceResult = physicsModel.advance(rafTime);
   document.documentElement.style.setProperty("--fg-offset", `${advanceResult.fgOffset}px`);
@@ -275,7 +277,10 @@ function advance(rafTime: number, finished: (d?: unknown) => void) {
   let fgOffsetAsPercent = advanceResult.fgOffset / document.documentElement.getBoundingClientRect().width;
   const scrimBase = offsetToScrimPercent(fgOffsetAsPercent);
   applyFilter(fgOffsetAsPercent);
-  const scrim = scrimBase + 0.1 * Math.sin((rafTime - startTime) / 200);
+  let scrim = scrimBase;
+  if (pulseScrim) {
+    scrim += 0.1 * Math.sin((rafTime - startTime) / 200);
+  }
   document.documentElement.style.setProperty("--scrim", `${scrim}`);
   updateZoom(advanceResult.fgOffset);
   if (rafTime - startTime > 800) {
@@ -507,6 +512,8 @@ function updateDisplays() {
   pop = zoom + (1.0 - zoom) / 3; // 1/3 betwen zoom to 1.0
   zoomDisplay.innerHTML = settingZoom.value.toString();
 
+  pulseScrim = !!settingPulseScrim.checked;
+
   targetStopDisplay.innerHTML = `${100 * parseFloat(settingTargetStop.value)}`;
 
   physicsModel.updateDisplays();
@@ -575,6 +582,7 @@ function init() {
 
   settingWobble.addEventListener("input", updateDisplays);
   settingSlowDrift.addEventListener("input", updateDisplays);
+  settingPulseScrim.addEventListener("input", updateDisplays);
 
   buttonTest.addEventListener("click", runTest);
   buttonSettings.addEventListener("click", stopTest);
