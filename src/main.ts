@@ -68,8 +68,8 @@ let globalBar = globalProgress.querySelector(".bar") as HTMLProgressElement;
 let startTime = 0;
 let loadTime = 0;
 
-let bucket_name = ["P25", "P50", "P75", "P90", "P95", "P99"];
-let bucket = [30, 100, 330, 660, 1000, 2360];
+let bucket_name = ["P25", "P50", "P75", "", "", "P90", "P95", "P99"];
+let bucket = [30, 100, 330, 450, 500, 660, 1000, 2360];
 
 let zoom = 1.0;
 let pop = 1.0;
