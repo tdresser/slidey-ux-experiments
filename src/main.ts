@@ -56,6 +56,8 @@ const settingUnloadHandler = document.getElementById("settingUnloadHandler") as 
 const settingBoostVelocity = document.getElementById("settingBoostVelocity") as HTMLInputElement ?? fail();
 const settingTargetStop = document.getElementById("settingTargetStop") as HTMLInputElement ?? fail();
 const settingFadeForeground = document.getElementById("settingFadeForeground") as HTMLInputElement ?? fail();
+const settingWobble = document.getElementById("settingWobble") as HTMLInputElement ?? fail();
+const settingSlowDrift = document.getElementById("settingSlowDrift") as HTMLInputElement ?? fail();
 
 
 let progress = attributedProgress;
@@ -570,6 +572,9 @@ function init() {
   spring80FrequencyResponseInput.addEventListener("input", updateDisplays);
   spring80DampingRatioInput.addEventListener("input", updateDisplays);
   hookAtInput.addEventListener("input", updateDisplays);
+
+  settingWobble.addEventListener("input", updateDisplays);
+  settingSlowDrift.addEventListener("input", updateDisplays);
 
   buttonTest.addEventListener("click", runTest);
   buttonSettings.addEventListener("click", stopTest);

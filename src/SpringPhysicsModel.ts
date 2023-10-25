@@ -192,8 +192,12 @@ export class SpringPhysicsModel extends PhysicsModel {
             // Prevent overshoot here.
             this.offset = Math.max(springResult.offset, 0);
         } else if (!this.hasCommitted) {
-            springResult = this.#spring80.position(this.maxOffset * this.targetStopPercent - this.animationStartOffset, time);
-            this.offset = this.maxOffset * this.targetStopPercent - springResult.offset;
+            let targetStopPercent = this.targetStopPercent;
+            if (this.slowDrift) {
+                targetStopPercent -= 0.25;
+            }
+            springResult = this.#spring80.position(this.maxOffset * targetStopPercent - this.animationStartOffset, time);
+            this.offset = this.maxOffset * targetStopPercent - springResult.offset;
         } else {
             springResult = this.#spring100.position(this.maxOffset - this.animationStartOffset, time);
             this.offset = this.maxOffset - springResult.offset;
@@ -214,8 +218,8 @@ export class SpringPhysicsModel extends PhysicsModel {
         }
         if (this.slowDrift && !this.hasCommitted) {
             // drift slowly towards the right getting slower as you go
-            this.offset -= this.maxOffset * 0.25 * 1000.0/(time+1000);
-            console.log(1000.0/(time+1000));
+            let driftDistance = this.maxOffset * 0.25;
+            this.offset += driftDistance - driftDistance * 1000.0/(time+1000);
         }
 
         let bgOffset = this.offset;
