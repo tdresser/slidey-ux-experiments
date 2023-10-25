@@ -42,6 +42,9 @@ const settingsPanel = document.getElementById("settingsPanel") ?? fail();
 const screenshotsContainer = document.getElementById("screenshots") ?? fail();
 const targetStopDisplay = document.getElementById("targetStopDisplay") ?? fail();
 const dragCurveInput = document.getElementById("dragCurve") as HTMLSelectElement ?? fail();
+const chevron = document.getElementById("chevron") as HTMLElement ?? fail();
+const chevronContainer = document.getElementById("chevronContainer") as HTMLElement ?? fail();
+const settingChevron = document.getElementById("settingChevron") as HTMLInputElement ?? fail();
 
 const frontimg = document.getElementById("frontimg")?.querySelector("img") as HTMLImageElement ?? fail();
 const midimg = document.getElementById("midimg")?.querySelector("img") as HTMLImageElement ?? fail();
@@ -94,13 +97,22 @@ function offsetToScrimPercent(offsetAsPercent: number) {
 
 let popped = false;
 
-let lastPointerMoveEvent : PointerEvent;
+let lastPointerMoveEvent : PointerEvent | null = null;
+let chevronAccumulator : number = 0;
+let chevronMaxValue : number = 35;
 
 function handlePointerMove(e: PointerEvent) {
   if (!pointingDown) {
     return;
   }
+
+  if (!lastPointerMoveEvent) {
+    lastPointerMoveEvent = e;
+  }
+  let dx = e.x - lastPointerMoveEvent.x;
   lastPointerMoveEvent = e;
+  chevronAccumulator = Math.min(Math.max(chevronAccumulator + dx, 0), chevronMaxValue);
+  updateChevron(chevronAccumulator / chevronMaxValue);
 
   let moveResult = physicsModel.pointerMove(e);
 
@@ -114,6 +126,27 @@ function handlePointerMove(e: PointerEvent) {
 
   updateZoom(moveResult.fgOffset);
   updatePop(moveResult.fgOffset);
+}
+
+function updateChevron(percent: number) {
+  if (!settingChevron.checked)
+    percent = 0;
+
+  chevronContainer.style.display = "block";
+  if (percent > 0.7) {
+    chevronContainer.style.left = "15px";
+    chevronContainer.style.borderRadius = "50%";
+    chevronContainer.style.width = getComputedStyle(chevronContainer).height;
+    chevron.style.opacity = "1";
+    navigator.vibrate(1);
+  } else if (percent > 0.1) {
+    chevronContainer.style.left = "1px";
+    chevronContainer.style.borderRadius = "15px"
+    chevronContainer.style.width = `${chevronContainer.getBoundingClientRect().height * percent / 0.7}px`;
+    chevron.style.opacity = `${Math.min(Math.max((percent - 0.5) / 0.2, 0), 1)}`;
+  } else {
+    chevronContainer.style.display = "none";
+  }
 }
 
 function updateZoom(offset: number) {
@@ -139,6 +172,8 @@ function updatePop(offset: number) {
 }
 
 function handlePointerUp(e: PointerEvent) {
+  lastPointerMoveEvent = null;
+  updateChevron(0);
   if (!pointingDown) {
     return;
   }
@@ -348,7 +383,9 @@ function initPhysics(): PhysicsModel {
       // If we're still snapping, it means we need to animate.
       if (snapping) {
         requestAnimationFrame(() => {
-          handlePointerMove(lastPointerMoveEvent);
+          if (lastPointerMoveEvent !== null) {
+            handlePointerMove(lastPointerMoveEvent);
+          }
         });
         return lastOffset;
       } 
@@ -375,7 +412,9 @@ function initPhysics(): PhysicsModel {
         snapTarget = targetStopPercent;
         snapping = true;
         requestAnimationFrame(() => {
-          handlePointerMove(lastPointerMoveEvent);
+          if (lastPointerMoveEvent !== null) {
+            handlePointerMove(lastPointerMoveEvent);
+          }
         });
       }
       // Snap back to 0 if we moved 5% of the screen to the left.
@@ -383,7 +422,9 @@ function initPhysics(): PhysicsModel {
         snapTarget = 0;
         snapping = true;
         requestAnimationFrame(() => {
-          handlePointerMove(lastPointerMoveEvent);
+          if (lastPointerMoveEvent !== null) {
+            handlePointerMove(lastPointerMoveEvent);
+          }
         });
       }
       // We're not snapping, so move very gradually

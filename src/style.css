@@ -308,3 +308,21 @@ fieldset {
     }
 }
 
+#chevronContainer {
+  height: 50px;
+  transition: all 0.2s;
+  position: absolute;
+  top: 50%;
+  display: none;
+  background: beige;
+  z-index: 999999;
+}
+
+#chevron {
+  color: black;
+  font-size: 24pt;
+  text-align: center;
+  margin-top: 2px;
+  transition: all 0.2s;
+}
+

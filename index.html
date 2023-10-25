@@ -11,6 +11,9 @@
   <!--
   <div id=progressContainer class="progress-container attributed">
   -->
+  <div id=chevronContainer>
+    <div id=chevron>&lt;</div>
+  </div>
   <div id=progressContainer style="z-index:9999" class="progress-container">
     <div id="globalProgress" style="display:none">
       <progress style="width:100%" class="bar pure-material-progress-linear"/>
@@ -31,29 +34,33 @@
     <div class="slider-window">
       <div class="slider-label modes">
         <h2>Modes</h2>
-        <label class=check-box-label id="label_for_unload_handler">
+        <label class=check-box-label>
           <input id="settingUnloadHandler" type="checkbox">
           unload handler
         </label>
-        <label class=check-box-label id="label_for_boost_velocity">
+        <label class=check-box-label>
           <input id="settingBoostVelocity" type="checkbox" checked>
           boost velocity
         </label>
-        <label class=check-box-label id="label_for_fadeForeground">
+        <label class=check-box-label>
           <input id="settingFadeForeground" type="checkbox" checked>
           fade foreground
         </label>
-        <label class=check-box-label id="label_for_dont_bounce">
+        <label class=check-box-label>
           <input id="settingDontBounceBackpage" type="checkbox" checked>
           don't bounce backpage
         </label>
-        <label class=check-box-label id="label_for_wobble">
+        <label class=check-box-label>
           <input id="settingWobble" type="checkbox">
           wobble
         </label>
-        <label class=check-box-label id="label_for_slow_drift">
+        <label class=check-box-label>
           <input id="settingSlowDrift" type="checkbox">
           slow drift
+        </label>
+        <label class=check-box-label>
+          <input id="settingChevron" type="checkbox">
+          chevron 
         </label>
       </div>
     </div>
