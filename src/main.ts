@@ -279,7 +279,7 @@ function advance(rafTime: number, finished: (d?: unknown) => void) {
   applyFilter(fgOffsetAsPercent);
   let scrim = scrimBase;
   if (pulseScrim) {
-    scrim += 0.1 * Math.sin((rafTime - startTime) / 200);
+    scrim += 0.1 * Math.sin(2 * Math.PI * (rafTime - startTime) / 1000);
   }
   document.documentElement.style.setProperty("--scrim", `${scrim}`);
   updateZoom(advanceResult.fgOffset);
