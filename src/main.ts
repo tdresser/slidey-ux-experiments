@@ -99,7 +99,7 @@ let popped = false;
 
 let lastPointerMoveEvent : PointerEvent | null = null;
 let chevronAccumulator : number = 0;
-let chevronMaxValue : number = 35;
+let chevronMaxValue : number = 50;
 
 function handlePointerMove(e: PointerEvent) {
   if (!pointingDown) {
@@ -136,7 +136,7 @@ function updateChevron(percent: number) {
 
   chevronContainer.style.display = "block";
   if (percent > 0.7) {
-    chevronContainer.style.left = "15px";
+    chevronContainer.style.left = "25px";
     chevronContainer.style.borderRadius = "50%";
     chevronContainer.style.width = getComputedStyle(chevronContainer).height;
     chevron.style.opacity = "1";
@@ -148,11 +148,12 @@ function updateChevron(percent: number) {
     chevronPop = false;
     chevronContainer.style.left = "1px";
     chevronContainer.style.borderRadius = "15px"
-    chevronContainer.style.width = `${chevronContainer.getBoundingClientRect().height * percent / 0.7}px`;
+    chevronContainer.style.width = `${chevronContainer.getBoundingClientRect().height * (percent - 0.1) / 0.6}px`;
     chevron.style.opacity = `${Math.min(Math.max((percent - 0.5) / 0.2, 0), 1)}`;
   } else {
     chevronPop = false;
     chevronContainer.style.display = "none";
+    chevron.style.opacity = "0";
   }
 }
 
@@ -181,6 +182,8 @@ function updatePop(offset: number) {
 function handlePointerUp(e: PointerEvent) {
   lastPointerMoveEvent = null;
   updateChevron(0);
+  chevronAccumulator = 0;
+
   if (!pointingDown) {
     return;
   }

@@ -324,5 +324,6 @@ fieldset {
   text-align: center;
   margin-top: 2px;
   transition: all 0.2s;
+  opacity: 0;
 }
 
