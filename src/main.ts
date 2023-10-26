@@ -64,12 +64,11 @@ let progress = attributedProgress;
 let progress_bar = progress.querySelector(".bar") as HTMLProgressElement;
 let globalBar = globalProgress.querySelector(".bar") as HTMLProgressElement;
 
-
 let startTime = 0;
 let loadTime = 0;
 
-let bucket_name = ["P25", "P50", "P75", "", "", "P90", "P95", "P99"];
-let bucket = [30, 100, 330, 450, 500, 660, 1000, 2360];
+let bucket_name = ["P25", "P50", "P75", "P80", "P85", "P90", "P95", "P99"];
+let bucket = [20, 80, 270, 340, 440, 580, 880, 2040];
 
 let zoom = 1.0;
 let pop = 1.0;
