@@ -76,6 +76,30 @@ let pop = 1.0;
 
 parseQuery();
 
+interface StringByString {
+  [key: string]: string;
+}
+
+let initialState: StringByString = {};
+saveInitialState();
+
+function saveInitialState() {
+  let inputs = document.querySelectorAll("input");
+  for (const input of inputs) {
+    if (input) {
+      if (input.type == "checkbox") {
+        initialState[input.id] = input.checked.toString();
+      } else {
+        initialState[input.id] = input.value;
+      }
+    }
+  }
+  let selects = document.querySelectorAll("select");
+  for (const select of selects) {
+    initialState[select.id] = select.value;
+  }
+}
+
 function parseQuery() {
   console.log("PARSE");
   var url_string = window.location.href;
@@ -105,9 +129,17 @@ function updateQuery() {
   for (const input of inputs) {
     if (input) {
       if (input.type == "checkbox") {
-        url.searchParams.set(input.id, input.checked.toString());
+        if(initialState[input.id] != input.checked.toString()) {
+          url.searchParams.set(input.id, input.checked.toString());
+        } else {
+          url.searchParams.delete(input.id);
+        }
       } else {
-        url.searchParams.set(input.id, input.value);
+        if(initialState[input.id] != input.value) {
+          url.searchParams.set(input.id, input.value);
+        } else {
+          url.searchParams.delete(input.id);
+        }
       }
     }
   }
