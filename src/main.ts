@@ -82,6 +82,9 @@ function parseQuery() {
   var url = new URL(url_string);
   for(const [ key, value ] of url.searchParams) {
     console.log(key, value); 
+    if (key == "runTest") {
+      runTest();
+    }
     let element = document.getElementById(key);
     if(!element) continue;
     if(element.nodeName == "INPUT") {
