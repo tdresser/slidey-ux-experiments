@@ -74,6 +74,51 @@ let bucket = [30, 100, 330, 450, 500, 660, 1000, 2360];
 let zoom = 1.0;
 let pop = 1.0;
 
+parseQuery();
+
+function parseQuery() {
+  console.log("PARSE");
+  var url_string = window.location.href;
+  var url = new URL(url_string);
+  for(const [ key, value ] of url.searchParams) {
+    console.log(key, value); 
+    let element = document.getElementById(key);
+    if(!element) continue;
+    if(element.nodeName == "INPUT") {
+      let input = element as HTMLInputElement;
+      if (input.type == "checkbox") {
+        input.checked = (value == "true");
+      } else {
+        input.value = value;
+      }
+    }
+  }
+}
+
+function updateQuery() {
+  const url = new URL(window.location.toString());
+
+  let inputs = document.querySelectorAll("input");
+  for (const input of inputs) {
+    if (input) {
+      if (input.type == "checkbox") {
+        url.searchParams.set(input.id, input.checked.toString());
+      } else {
+        url.searchParams.set(input.id, input.value);
+      }
+    }
+  }
+  let selects = document.querySelectorAll("select");
+  for (const select of selects) {
+    url.searchParams.set(select.id, select.value);
+  }
+  console.log("UPDATE");
+  for(const [ key, value ] of url.searchParams) {
+    console.log(key, value); 
+  }
+  window.history.replaceState({}, '', url);
+}
+
 function delayToFullLoadMs() {
   let commitDelay = bucket[parseInt(networkDelayInput.value)];
   return Math.min(Math.max(commitDelay + 500, commitDelay * 2), commitDelay + 1000);
@@ -506,6 +551,8 @@ function plot() {
 
 
 function updateDisplays() {
+  updateQuery();
+
   let bucketIndex = parseInt(networkDelayInput.value);
   networkDelayDisplay.innerHTML = bucket_name[bucketIndex] + "=" + bucket[bucketIndex].toString();
   zoom = parseInt(settingZoom.value) / 100.0;
@@ -566,6 +613,10 @@ function changeProgressAttribution() {
 }
 
 function init() {
+  let inputs = document.querySelectorAll("input");
+  for (const input of inputs) {
+    input.addEventListener("input", updateDisplays);
+  }
   networkDelayInput.addEventListener("input", updateDisplays);
   settingZoom.addEventListener("input", updateDisplays);
   settingTargetStop.addEventListener("input", updateDisplays);
