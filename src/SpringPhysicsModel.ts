@@ -25,6 +25,7 @@ class Spring {
     lastNFrames: Point[];
     name: string;
     overshootCurve = (x:number) => x;
+    preserveMinOscillation = 0.0;
 
     constructor(springConfig: SpringConfig) {
         const stiffness = (((2 * Math.PI) / springConfig.frequencyResponse) ** 2) * this.mass
@@ -44,7 +45,7 @@ class Spring {
         const b = this.dampedNaturalFrequency
         const c = (this.initialVelocity + a * startPosition) / b
         const d = startPosition
-        let position = Math.exp(-a * time) * (c * Math.sin(b * time) + (d * Math.cos(b * time)));
+        let position = (this.preserveMinOscillation + Math.exp(-a * time)) * (c * Math.sin(b * time) + (d * Math.cos(b * time)));
 
         if (position < 0) {
             position = this.overshootCurve(position);
@@ -101,11 +102,15 @@ export class SpringPhysicsModel extends PhysicsModel {
     spring80DampingRatioInput = document.getElementById("spring80DampingRatio") as HTMLInputElement ?? fail();
     spring80DampingRatioDisplay = document.getElementById("spring80DampingRatioDisplay") as HTMLInputElement ?? fail();
 
+    preserveMinOscillationInput = document.getElementById("preserveMinOscillation") as HTMLInputElement ?? fail();
+    preserveMinOscillationDisplay = document.getElementById("preserveMinOscillationDisplay") as HTMLInputElement ?? fail();
+
     hookAtInput = document.getElementById("hookAt") as HTMLInputElement ?? fail();
     hookAtDisplay = document.getElementById("hookAtDisplay") as HTMLInputElement ?? fail();
 
     spring80FrequencyResponse = parseFloat(this.spring80FrequencyResponseInput.value);
     spring80DampingRatio = parseFloat(this.spring80DampingRatioInput.value);
+    preserveMinOscillation = parseFloat(this.preserveMinOscillationInput.value);
 
     hookAtPercent = parseFloat(this.hookAtInput.value);
     hooked = false;
@@ -120,16 +125,23 @@ export class SpringPhysicsModel extends PhysicsModel {
     slowDriftInput = document.getElementById("settingSlowDrift") as HTMLInputElement ?? fail();
     slowDrift = !!this.slowDriftInput.checked;
 
+    postponeInput = document.getElementById("settingPostpone") as HTMLInputElement ?? fail();
+    postpone = !!this.postponeInput.checked;
+
+    postponed = false;
+
     constructor(init: PhysicsModelInit) {
         super(init);
         this.animationStartOffset = 0;
 
         this.spring80FrequencyResponseInput.addEventListener("input", () => this.updateDisplays());
         this.spring80DampingRatioInput.addEventListener("input", () => this.updateDisplays());
+        this.preserveMinOscillationInput.addEventListener("input", () => this.updateDisplays());
         this.hookAtInput.addEventListener("input", () => this.updateDisplays());
         this.dontBounceBackpageInput.addEventListener("input", () => this.updateDisplays());
         this.wobbleInput.addEventListener("input", () => this.updateDisplays());
         this.slowDriftInput.addEventListener("input", () => this.updateDisplays());
+        this.postponeInput.addEventListener("input", () => this.updateDisplays());
 
         this.#spring100 = new Spring({
             frequencyResponse: 200,
@@ -149,6 +161,7 @@ export class SpringPhysicsModel extends PhysicsModel {
                 return -init.targetOffset * maxOvershootFactor * (1 - 1/(percent + 1));
             }*/
         });
+        this.#spring80.preserveMinOscillation = parseFloat(this.preserveMinOscillationInput.value);
         this.#spring0 = new Spring({
             frequencyResponse: 200,
             dampingRatio: 0.9,
@@ -159,27 +172,36 @@ export class SpringPhysicsModel extends PhysicsModel {
     updateDisplays() {
         this.spring80FrequencyResponseDisplay.innerHTML = this.spring80FrequencyResponseInput.value;
         this.spring80DampingRatioDisplay.innerHTML = this.spring80DampingRatioInput.value;
+        this.preserveMinOscillationDisplay.innerHTML = this.preserveMinOscillationInput.value;
         this.hookAtDisplay.innerHTML = this.hookAtInput.value;
         this.dontBounceBackpage = !!this.dontBounceBackpageInput.checked;
         this.wobble = !!this.wobbleInput.checked;
         this.slowDrift = !!this.slowDriftInput.checked;
+        this.#spring80.preserveMinOscillation = parseFloat(this.preserveMinOscillationInput.value);
+        this.postpone = !!this.postponeInput.checked;
     }
 
     advance(rafTime: number): AdvanceResult {
         rafTime = rafTime;
 
         if (!this.hasCommitted && this.committed(rafTime)) {
-            // Switch springs!
-            this.restartAnimating(this.lastRaf || rafTime);
-            this.hasCommitted = true;
-            if(!this.hooked) {
-                this.hooked = true;
-                this.#spring100.initialVelocity = this.#spring80.initialVelocity;
-            } else {
-                this.#spring100.initialVelocity = this.#spring80.velocity();
+            let postponed = false;
+            if(this.postpone && this.#spring80.velocity() > 0) {
+                postponed = true;
             }
-            if (isNaN(this.#spring100.initialVelocity)) {
-                this.#spring100.initialVelocity = -2.0;
+            if( !postponed ) {
+                // Switch springs!
+                this.restartAnimating(this.lastRaf || rafTime);
+                this.hasCommitted = true;
+                if(!this.hooked) {
+                    this.hooked = true;
+                    this.#spring100.initialVelocity = this.#spring80.initialVelocity;
+                } else {
+                    this.#spring100.initialVelocity = this.#spring80.velocity();
+                }
+                if (isNaN(this.#spring100.initialVelocity)) {
+                    this.#spring100.initialVelocity = -2.0;
+                }
             }
         }
         const time = rafTime - this.animationStartTime;

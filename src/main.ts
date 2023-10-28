@@ -59,6 +59,7 @@ const settingFadeForeground = document.getElementById("settingFadeForeground") a
 const settingWobble = document.getElementById("settingWobble") as HTMLInputElement ?? fail();
 const settingSlowDrift = document.getElementById("settingSlowDrift") as HTMLInputElement ?? fail();
 const settingPulseScrim = document.getElementById("settingPulseScrim") as HTMLInputElement ?? fail();
+const settingPostpone = document.getElementById("settingPostpone") as HTMLInputElement ?? fail();
 
 let progress = attributedProgress;
 let progress_bar = progress.querySelector(".bar") as HTMLProgressElement;
@@ -659,15 +660,18 @@ function init() {
 
   let spring80FrequencyResponseInput = document.getElementById("spring80FrequencyResponse") as HTMLInputElement ?? fail();
   let spring80DampingRatioInput = document.getElementById("spring80DampingRatio") as HTMLInputElement ?? fail();
+  let preserveMinOscillationInput = document.getElementById("preserveMinOscillation") as HTMLInputElement ?? fail();
   let hookAtInput = document.getElementById("hookAt") as HTMLInputElement ?? fail();
 
   spring80FrequencyResponseInput.addEventListener("input", updateDisplays);
   spring80DampingRatioInput.addEventListener("input", updateDisplays);
+  preserveMinOscillationInput.addEventListener("input", updateDisplays);
   hookAtInput.addEventListener("input", updateDisplays);
 
   settingWobble.addEventListener("input", updateDisplays);
   settingSlowDrift.addEventListener("input", updateDisplays);
   settingPulseScrim.addEventListener("input", updateDisplays);
+  settingPostpone.addEventListener("input", updateDisplays);
 
   buttonTest.addEventListener("click", runTest);
   buttonSettings.addEventListener("click", stopTest);
