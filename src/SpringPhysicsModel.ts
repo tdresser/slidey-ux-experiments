@@ -300,7 +300,7 @@ export class SpringPhysicsModel extends PhysicsModel {
         // Don't let us overshoot too far. TODO: tune this.
         let velocity = findVelocity(this.pointerHistory);
         if(this.boostVelocity) {
-            velocity *= 3.0;
+            velocity *= 2.0;
             velocity = Math.max(velocity, 1.0);
         }
         velocity = Math.min(velocity, 2.5);
