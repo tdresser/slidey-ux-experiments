@@ -363,7 +363,7 @@ function advance(rafTime: number, finished: (d?: unknown) => void) {
   }
   document.documentElement.style.setProperty("--scrim", `${scrim}`);
   updateZoom(advanceResult.fgOffset);
-  if (rafTime - startTime > 800) {
+  if (rafTime - startTime > 350) {
     progress.style.display = "block";
   }
   if (advanceResult.hasCommitted && !hasCommitted) {
