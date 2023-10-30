@@ -128,7 +128,7 @@ export class SpringPhysicsModel extends PhysicsModel {
     postponeInput = document.getElementById("settingPostpone") as HTMLInputElement ?? fail();
     postpone = !!this.postponeInput.checked;
 
-    postponed = false;
+    postponed = 0;
 
     constructor(init: PhysicsModelInit) {
         super(init);
@@ -185,11 +185,16 @@ export class SpringPhysicsModel extends PhysicsModel {
         rafTime = rafTime;
 
         if (!this.hasCommitted && this.committed(rafTime)) {
-            let postponed = false;
-            if(this.postpone && this.#spring80.velocity() > 0) {
-                postponed = true;
+            if (this.postpone) {
+                if (this.#spring80.velocity() > 0) {
+                    if (!this.postponed) {
+                        this.postponed = rafTime;
+                    } 
+                } else {
+                    this.postponed = 0;
+                }
             }
-            if( !postponed ) {
+            if (!this.postponed) {
                 // Switch springs!
                 this.restartAnimating(this.lastRaf || rafTime);
                 this.hasCommitted = true;
@@ -204,8 +209,10 @@ export class SpringPhysicsModel extends PhysicsModel {
                 }
             }
         }
-        const time = rafTime - this.animationStartTime;
-
+        let time = rafTime - this.animationStartTime;
+        if (this.postponed) {
+            time += (rafTime - this.postponed);
+        }
         let springResult: SpringPosition | null = null;
         if (!this.hooked) {
             this.offset = this.animationStartOffset - time * this.#spring80.initialVelocity;
