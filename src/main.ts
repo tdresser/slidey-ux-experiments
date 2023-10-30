@@ -75,6 +75,8 @@ let bucket = [20, 80, 270, 340, 440, 580, 880, 2040];
 let zoom = 1.0;
 let pop = 1.0;
 
+let snapping = false;
+
 parseQuery();
 
 interface StringByString {
@@ -262,7 +264,15 @@ function updatePop(offset: number) {
   }
 }
 
+let lastPointerUpEvent : PointerEvent | null = null;
+
 function handlePointerUp(e: PointerEvent) {
+  if (snapping) {
+    lastPointerUpEvent = e;
+    return;
+  }
+  lastPointerUpEvent = null;
+
   lastPointerMoveEvent = null;
   updateChevron(0);
   chevronAccumulator = 0;
@@ -447,7 +457,7 @@ function initPhysics(): PhysicsModel {
     let lastOffset = 0;
     let lastAccumulation = 0;
     let lastX = -999;
-    let snapping = physicsModel.setSnapping(false);
+    snapping = physicsModel.setSnapping(false);
     let snapTarget = -1;
     let snapSpeed = 4;
     let direction = 1;
@@ -467,6 +477,9 @@ function initPhysics(): PhysicsModel {
             lastOffset = snapTarget * width;
             snapping = physicsModel.setSnapping(false);
             lastAccumulation = 0;
+            if (lastPointerUpEvent !== null) {
+              handlePointerUp(lastPointerUpEvent);
+            }
           }
         } else if (lastOffset > snapTarget * width) {
           lastOffset -= snapSpeed;
@@ -474,6 +487,9 @@ function initPhysics(): PhysicsModel {
             lastOffset = snapTarget * width;
             snapping = physicsModel.setSnapping(false);
             lastAccumulation = 0;
+            if (lastPointerUpEvent !== null) {
+              handlePointerUp(lastPointerUpEvent);
+            }
           }
         }
       }
@@ -481,8 +497,11 @@ function initPhysics(): PhysicsModel {
       // If we're still snapping, it means we need to animate.
       if (snapping) {
         requestAnimationFrame(() => {
-          if (lastPointerMoveEvent !== null) {
-            handlePointerMove(lastPointerMoveEvent);
+          if (snapping) {
+            if (lastPointerMoveEvent !== null) {
+              handlePointerMove(lastPointerMoveEvent);
+            } else {
+            }
           }
         });
         return lastOffset;
