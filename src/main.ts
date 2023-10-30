@@ -58,8 +58,9 @@ const settingTargetStop = document.getElementById("settingTargetStop") as HTMLIn
 const settingFadeForeground = document.getElementById("settingFadeForeground") as HTMLInputElement ?? fail();
 const settingWobble = document.getElementById("settingWobble") as HTMLInputElement ?? fail();
 const settingSlowDrift = document.getElementById("settingSlowDrift") as HTMLInputElement ?? fail();
-const settingPulseScrim = document.getElementById("settingPulseScrim") as HTMLInputElement ?? fail();
+const settingPulseScrim = document.getElementById("settingPulseScrim") as HTMLInputElement;
 const settingPostpone = document.getElementById("settingPostpone") as HTMLInputElement ?? fail();
+const settingParallaxTo80 = document.getElementById("settingParallaxTo80") as HTMLInputElement ?? fail();
 
 let progress = attributedProgress;
 let progress_bar = progress.querySelector(".bar") as HTMLProgressElement;
@@ -446,7 +447,7 @@ function initPhysics(): PhysicsModel {
     let lastOffset = 0;
     let lastAccumulation = 0;
     let lastX = -999;
-    let snapping = false;
+    let snapping = physicsModel.setSnapping(false);
     let snapTarget = -1;
     let snapSpeed = 4;
     let direction = 1;
@@ -464,14 +465,14 @@ function initPhysics(): PhysicsModel {
           lastOffset += snapSpeed;
           if (lastOffset >= snapTarget * width) {
             lastOffset = snapTarget * width;
-            snapping = false;
+            snapping = physicsModel.setSnapping(false);
             lastAccumulation = 0;
           }
         } else if (lastOffset > snapTarget * width) {
           lastOffset -= snapSpeed;
           if (lastOffset <= snapTarget * width) {
             lastOffset = snapTarget * width;
-            snapping = false;
+            snapping = physicsModel.setSnapping(false);
             lastAccumulation = 0;
           }
         }
@@ -507,7 +508,7 @@ function initPhysics(): PhysicsModel {
       // Snap to 80 if we moved 10% of the screen to the right.
       if (snapTarget < targetStopPercent && lastAccumulation / width > 0.1) {
         snapTarget = targetStopPercent;
-        snapping = true;
+        snapping = physicsModel.setSnapping(true);
         requestAnimationFrame(() => {
           if (lastPointerMoveEvent !== null) {
             handlePointerMove(lastPointerMoveEvent);
@@ -517,7 +518,7 @@ function initPhysics(): PhysicsModel {
       // Snap back to 0 if we moved 5% of the screen to the left.
       else if (snapTarget > 0 && lastAccumulation / width < -0.05) {
         snapTarget = 0;
-        snapping = true;
+        snapping = physicsModel.setSnapping(true);
         requestAnimationFrame(() => {
           if (lastPointerMoveEvent !== null) {
             handlePointerMove(lastPointerMoveEvent);
@@ -532,7 +533,7 @@ function initPhysics(): PhysicsModel {
     };
   }
 
-  return new SpringPhysicsModel({
+  let result = new SpringPhysicsModel({
     networkDelay: bucket[parseInt(networkDelayInput.value)],
     targetOffset: width,
     parallax: true,
@@ -540,6 +541,9 @@ function initPhysics(): PhysicsModel {
     boostVelocity: !!settingBoostVelocity.checked,
     targetStopPercent: targetStopPercent
   });
+  result.setMode(dragCurveInput.value);
+  result.setParallaxTo80(!!settingParallaxTo80.checked);
+  return result;
 }
 
 function plot() {
@@ -656,7 +660,7 @@ function init() {
   settingZoom.addEventListener("input", updateDisplays);
   settingTargetStop.addEventListener("input", updateDisplays);
   settingBoostVelocity.addEventListener("input", updateDisplays);
-  dragCurveInput.addEventListener("input", updateDisplays);
+  dragCurveInput.addEventListener("change", updateDisplays);
 
   let spring80FrequencyResponseInput = document.getElementById("spring80FrequencyResponse") as HTMLInputElement ?? fail();
   let spring80DampingRatioInput = document.getElementById("spring80DampingRatio") as HTMLInputElement ?? fail();

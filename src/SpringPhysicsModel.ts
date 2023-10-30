@@ -95,6 +95,9 @@ export class SpringPhysicsModel extends PhysicsModel {
     hasCommitted = false;
     hasAborted = false;
     pointerHistory: Point[] = [];
+    snapping: boolean = false
+    mode: string = "";
+    parallaxTo80: boolean = false;
 
     spring80FrequencyResponseInput = document.getElementById("spring80FrequencyResponse") as HTMLInputElement ?? fail();
     spring80FrequencyResponseDisplay = document.getElementById("spring80FrequencyResponseDisplay") as HTMLInputElement ?? fail();
@@ -292,10 +295,15 @@ export class SpringPhysicsModel extends PhysicsModel {
     }
 
     fgToBgOffset(offset: number): number {
+        let result = 0;
         if (!this.parallax) {
-            return 0;
+            result = 0;
+        } else if (this.parallaxTo80) {
+          result = 0.25 * (offset - this.targetStopPercent * this.maxOffset);
+        } else {
+          result = 0.25 * (offset - this.maxOffset);
         }
-        return 0.25 * (offset - this.maxOffset);
+        return Math.min(0, result);
     }
 
     setDefaultVelocity(): void {
@@ -303,16 +311,32 @@ export class SpringPhysicsModel extends PhysicsModel {
         this.#spring80.initialVelocity = this.boostVelocity ? -1.0 : -0.5;
     }
 
+    setSnapping(sn : boolean): boolean {
+      this.snapping = sn;
+      return sn;
+    }
+
+    setMode(mode: string): void {
+      this.mode = mode;
+    }
+    setParallaxTo80(flag: boolean): void {
+      this.parallaxTo80 = flag;
+    }
+
     pointerUp(_: PointerEvent): "success" | "abort" {
         // Don't let us overshoot too far. TODO: tune this.
-        let velocity = findVelocity(this.pointerHistory);
-        if(this.boostVelocity) {
-            //velocity *= 2.0;
-            velocity = Math.max(velocity, 1.0);
+        let velocity;
+        if (!this.snapping && this.mode == "snapto") {
+          velocity = 0;
+        } else {
+          velocity = findVelocity(this.pointerHistory);
+          if(this.boostVelocity) {
+              //velocity *= 2.0;
+              velocity = Math.max(velocity, 1.0);
+          }
+          velocity = Math.min(velocity, 2.5);
+          velocity = Math.max(velocity, 0.3);
         }
-        velocity = Math.min(velocity, 2.5);
-        velocity = Math.max(velocity, 0.3);
-
         this.#spring0.initialVelocity = -velocity
 
         // TODO: we could use the event position (but maybe it's already sent via a prior touchmove?)

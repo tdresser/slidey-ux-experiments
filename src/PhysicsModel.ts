@@ -26,6 +26,7 @@ export abstract class PhysicsModel {
     boostVelocity: boolean;
     targetStopPercent: number;
     loadStart: number = 0;
+    snapping: boolean = false;
 
     constructor(init: PhysicsModelInit) {
         this.networkDelay = init.networkDelay;
@@ -34,6 +35,12 @@ export abstract class PhysicsModel {
         this.fingerDragCurve = init.fingerDragCurve;
         this.boostVelocity = init.boostVelocity;
         this.targetStopPercent = init.targetStopPercent;
+    }
+
+
+    setSnapping(sn: boolean): boolean {
+      this.snapping = sn;
+      return sn;
     }
 
     startAnimating(time: number) {
