@@ -45,7 +45,7 @@ const dragCurveInput = document.getElementById("dragCurve") as HTMLSelectElement
 const chevron = document.getElementById("chevron") as HTMLElement ?? fail();
 const chevronContainer = document.getElementById("chevronContainer") as HTMLElement ?? fail();
 const settingChevron = document.getElementById("settingChevron") as HTMLInputElement ?? fail();
-const presetInput = document.getElementById("preset") as HTMLElement ?? fail();
+const presetInput = document.getElementById("preset") as HTMLInputElement ?? fail();
 
 const frontimg = document.getElementById("frontimg")?.querySelector("img") as HTMLImageElement ?? fail();
 const midimg = document.getElementById("midimg")?.querySelector("img") as HTMLImageElement ?? fail();
@@ -165,34 +165,48 @@ function updateQuery() {
   }
   window.history.replaceState({}, '', url);
 }
-/*
+
 interface Preset {
   [key: string]: StringByString;
 }
 
-const presets: Preset = [
-  "slowBounce" = {
-      
-  },
-  "quickBounce" = {
-    
-  },
-  "steady" = {
-    
-  },
-  "drift" = {
-    
-  },
-  "none" = {
+// configs
+// Quick Bounce: https://tdresser.github.io/slidey-ux-experiments/?settingPostpone=true&spring80DampingRatio=1.2&preserveMinOscillation=0.04
+// Slow Bounce: https://tdresser.github.io/slidey-ux-experiments/?settingPostpone=true&spring80FrequencyResponse=800&spring80DampingRatio=1.2&preserveMinOscillation=0.04
+// Steady: https://tdresser.github.io/slidey-ux-experiments/?spring80FrequencyResponse=680&spring80DampingRatio=0.92
+// Drift: https://tdresser.github.io/slidey-ux-experiments/?spring80FrequencyResponse=800&settingSlowDrift=true
 
+let presets: Preset = {
+  "quickBounce": {
+    "settingPostpone": "true",
+    "settingPulseScrim": "true",
+    "spring80FrequencyResponse": "400", 
+    "preserveMinOscillation": "0.02"
+  },
+  "slowBounce": {
+    "settingPostpone": "true",
+    "spring80FrequencyResponse": "800", 
+    "spring80DampingRatio": "1.2",
+    "preserveMinOscillation": "0.04"
+  },
+  "steady": {
+    "spring80FrequencyResponse": "680", 
+    "spring80DampingRatio": "0.92"
+  },
+  "drift": {
+    "spring80FrequencyResponse": "800",
+    "settingSlowDrift": "true"
+  },
+  "none": {
   }
-];
+};
 
 function applySettings(settings: StringByString) {
-  for (setting of settings) {
+  for (const key in settings) {
     let element = document.getElementById(key);
     if(!element) continue;
     if(element.nodeName == "INPUT") {
+      let value = settings[key];
       let input = element as HTMLInputElement;
       if (input.type == "checkbox") {
         input.checked = (value == "true");
@@ -203,11 +217,10 @@ function applySettings(settings: StringByString) {
   }
 }
 
-function applyPreset(name) {
+function applyPreset(name: string) {
   applySettings(initialState);
   applySettings(presets[name]);
 }
-*/
 
 function delayToFullLoadMs() {
   let commitDelay = parseInt(networkDelayInput.value);
@@ -661,16 +674,18 @@ function plot() {
   ctx.stroke();
 
   ctx.restore();
-
 }
 
-
-function updateDisplays() {
-  updateQuery();
-
+function updateDelay() {
   let delay = parseInt(networkDelayInput.value);
   networkDelayDisplay.innerHTML = delay + "ms " + formatPercentile(delay);
-  //document.getElementById("percentileDisplay").innerHTML = formatPercentile(delay);
+}
+
+function updateDisplays( resetPreset = true ) {
+  updateQuery();
+
+  updateDelay();
+
   zoom = parseInt(settingZoom.value) / 100.0;
   pop = zoom + (1.0 - zoom) / 3; // 1/3 betwen zoom to 1.0
   zoomDisplay.innerHTML = settingZoom.value.toString();
@@ -685,16 +700,18 @@ function updateDisplays() {
   // This is a bit overkill, but with mode switching, these were sometimes getting out of sync.
   physicsModel = initPhysics();
   finishAllAnimation();
+
+  if(resetPreset) {
+    presetInput.value = "none";
+  }
 }
 
-
 function updatePreset() {
-/*
   let presetName = presetInput.value;
   if (presetName != "custom") {
     applyPreset(presetName);
   }
-*/
+  updateDisplays(false);
 }
 
 // `progress` is in the 0-1 range meaning how far off is the top page
@@ -741,13 +758,15 @@ function changeProgressAttribution() {
 function init() {
   let inputs = document.querySelectorAll("input");
   for (const input of inputs) {
-    input.addEventListener("input", updateDisplays);
+    if (input.id != "networkDelayInput") {
+      input.addEventListener("input", () => updateDisplays());
+    }
   }
-  networkDelayInput.addEventListener("input", updateDisplays);
-  settingZoom.addEventListener("input", updateDisplays);
-  settingTargetStop.addEventListener("input", updateDisplays);
-  settingBoostVelocity.addEventListener("input", updateDisplays);
-  dragCurveInput.addEventListener("change", updateDisplays);
+  networkDelayInput.addEventListener("input", updateDelay);
+  settingZoom.addEventListener("input", () => updateDisplays());
+  settingTargetStop.addEventListener("input", () => updateDisplays());
+  settingBoostVelocity.addEventListener("input", () => updateDisplays());
+  dragCurveInput.addEventListener("change", () => updateDisplays());
   presetInput.addEventListener("change", updatePreset);
 
   let spring80FrequencyResponseInput = document.getElementById("spring80FrequencyResponse") as HTMLInputElement ?? fail();
@@ -755,15 +774,15 @@ function init() {
   let preserveMinOscillationInput = document.getElementById("preserveMinOscillation") as HTMLInputElement ?? fail();
   let hookAtInput = document.getElementById("hookAt") as HTMLInputElement ?? fail();
 
-  spring80FrequencyResponseInput.addEventListener("input", updateDisplays);
-  spring80DampingRatioInput.addEventListener("input", updateDisplays);
-  preserveMinOscillationInput.addEventListener("input", updateDisplays);
-  hookAtInput.addEventListener("input", updateDisplays);
+  spring80FrequencyResponseInput.addEventListener("input", () => updateDisplays());
+  spring80DampingRatioInput.addEventListener("input", () => updateDisplays());
+  preserveMinOscillationInput.addEventListener("input", () => updateDisplays());
+  hookAtInput.addEventListener("input", () => updateDisplays());
 
-  settingWobble.addEventListener("input", updateDisplays);
-  settingSlowDrift.addEventListener("input", updateDisplays);
-  settingPulseScrim.addEventListener("input", updateDisplays);
-  settingPostpone.addEventListener("input", updateDisplays);
+  settingWobble.addEventListener("input", () => updateDisplays());
+  settingSlowDrift.addEventListener("input", () => updateDisplays());
+  settingPulseScrim.addEventListener("input", () => updateDisplays());
+  settingPostpone.addEventListener("input", () => updateDisplays());
 
   buttonTest.addEventListener("click", runTest);
   buttonSettings.addEventListener("click", stopTest);
