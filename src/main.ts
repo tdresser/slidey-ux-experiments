@@ -69,8 +69,16 @@ let globalBar = globalProgress.querySelector(".bar") as HTMLProgressElement;
 let startTime = 0;
 let loadTime = 0;
 
-let bucket_name = ["P25", "P50", "P75", "P80", "P85", "P90", "P95", "P99"];
-let bucket = [20, 80, 270, 340, 440, 580, 880, 2040];
+let bucket_name = ["P25", "P50", "P75", "P90", "P95", "P99"];
+let bucket = [30, 100, 330, 660, 1000, 2360];
+
+function formatPercentile(ms: number): string {
+  let i=0; 
+  while(ms>bucket[i]) i++;
+  if (i==0) return "<P25"; 
+  if (i==6) return ">P99";
+  return ">"+bucket_name[i-1];
+}
 
 let zoom = 1.0;
 let pop = 1.0;
@@ -158,7 +166,7 @@ function updateQuery() {
 }
 
 function delayToFullLoadMs() {
-  let commitDelay = bucket[parseInt(networkDelayInput.value)];
+  let commitDelay = parseInt(networkDelayInput.value);
   return Math.min(Math.max(commitDelay + 500, commitDelay * 2), commitDelay + 1000);
 }
 
@@ -553,7 +561,7 @@ function initPhysics(): PhysicsModel {
   }
 
   let result = new SpringPhysicsModel({
-    networkDelay: bucket[parseInt(networkDelayInput.value)],
+    networkDelay: parseInt(networkDelayInput.value),
     targetOffset: width,
     parallax: true,
     fingerDragCurve: fingerDragCurve,
@@ -599,7 +607,7 @@ function plot() {
 
   // draw the commit point
   ctx.strokeStyle = 'green';
-  let commitDelay = bucket[parseInt(networkDelayInput.value)];
+  let commitDelay = parseInt(networkDelayInput.value);
   ctx.beginPath();
   ctx.moveTo(commitDelay, 0);
   ctx.lineTo(commitDelay, width);
@@ -611,8 +619,9 @@ function plot() {
 function updateDisplays() {
   updateQuery();
 
-  let bucketIndex = parseInt(networkDelayInput.value);
-  networkDelayDisplay.innerHTML = bucket_name[bucketIndex] + "=" + bucket[bucketIndex].toString();
+  let delay = parseInt(networkDelayInput.value);
+  networkDelayDisplay.innerHTML = delay + "ms " + formatPercentile(delay);
+  //document.getElementById("percentileDisplay").innerHTML = formatPercentile(delay);
   zoom = parseInt(settingZoom.value) / 100.0;
   pop = zoom + (1.0 - zoom) / 3; // 1/3 betwen zoom to 1.0
   zoomDisplay.innerHTML = settingZoom.value.toString();
