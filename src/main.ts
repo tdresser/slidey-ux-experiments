@@ -45,6 +45,7 @@ const dragCurveInput = document.getElementById("dragCurve") as HTMLSelectElement
 const chevron = document.getElementById("chevron") as HTMLElement ?? fail();
 const chevronContainer = document.getElementById("chevronContainer") as HTMLElement ?? fail();
 const settingChevron = document.getElementById("settingChevron") as HTMLInputElement ?? fail();
+const presetInput = document.getElementById("preset") as HTMLElement ?? fail();
 
 const frontimg = document.getElementById("frontimg")?.querySelector("img") as HTMLImageElement ?? fail();
 const midimg = document.getElementById("midimg")?.querySelector("img") as HTMLImageElement ?? fail();
@@ -164,6 +165,49 @@ function updateQuery() {
   }
   window.history.replaceState({}, '', url);
 }
+/*
+interface Preset {
+  [key: string]: StringByString;
+}
+
+const presets: Preset = [
+  "slowBounce" = {
+      
+  },
+  "quickBounce" = {
+    
+  },
+  "steady" = {
+    
+  },
+  "drift" = {
+    
+  },
+  "none" = {
+
+  }
+];
+
+function applySettings(settings: StringByString) {
+  for (setting of settings) {
+    let element = document.getElementById(key);
+    if(!element) continue;
+    if(element.nodeName == "INPUT") {
+      let input = element as HTMLInputElement;
+      if (input.type == "checkbox") {
+        input.checked = (value == "true");
+      } else {
+        input.value = value;
+      }
+    }
+  }
+}
+
+function applyPreset(name) {
+  applySettings(initialState);
+  applySettings(presets[name]);
+}
+*/
 
 function delayToFullLoadMs() {
   let commitDelay = parseInt(networkDelayInput.value);
@@ -643,6 +687,16 @@ function updateDisplays() {
   finishAllAnimation();
 }
 
+
+function updatePreset() {
+/*
+  let presetName = presetInput.value;
+  if (presetName != "custom") {
+    applyPreset(presetName);
+  }
+*/
+}
+
 // `progress` is in the 0-1 range meaning how far off is the top page
 function applyFilter(progress: number) {
   if (settingFadeForeground.checked) {
@@ -694,6 +748,7 @@ function init() {
   settingTargetStop.addEventListener("input", updateDisplays);
   settingBoostVelocity.addEventListener("input", updateDisplays);
   dragCurveInput.addEventListener("change", updateDisplays);
+  presetInput.addEventListener("change", updatePreset);
 
   let spring80FrequencyResponseInput = document.getElementById("spring80FrequencyResponse") as HTMLInputElement ?? fail();
   let spring80DampingRatioInput = document.getElementById("spring80DampingRatio") as HTMLInputElement ?? fail();
