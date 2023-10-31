@@ -191,11 +191,14 @@ let presets: Preset = {
   },
   "steady": {
     "spring80FrequencyResponse": "680", 
-    "spring80DampingRatio": "0.92"
+    "spring80DampingRatio": "0.92",
+    "preserveMinOscillation": "0.04"
   },
   "drift": {
+    "settingBoostVelocity": "false",
     "spring80FrequencyResponse": "800",
-    "settingSlowDrift": "true"
+    "settingSlowDrift": "true",
+    "preserveMinOscillation": "0.04"
   },
   "none": {
   }
