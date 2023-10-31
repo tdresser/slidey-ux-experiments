@@ -581,18 +581,21 @@ function plot() {
   physicsModel.startAnimating(0);
 
   var c = document.getElementById("plot") as HTMLCanvasElement ?? fail();
-  let scale = c.width / 1000.0;
-  c.height = width * scale;
+  //let scale = c.width / 1000.0;
+  //c.height = width * scale;
   var ctx = c.getContext("2d");
   if (!ctx) return;
 
-  ctx.scale(scale, scale);
+  ctx.save();
+  ctx.clearRect(0, 0, c.width, c.height);
+
+  ctx.scale(c.width/2000.0, c.height/width);
   ctx.lineWidth = 3;
 
   ctx.strokeStyle = 'black';
   ctx.beginPath();
   ctx.moveTo(0, 0);
-  for (var x = 0; x < 1000; x++) {
+  for (var x = 0; x < 2000; x++) {
     ctx.lineTo(x, physicsModel.advance(x).fgOffset);
   }
   ctx.stroke();
@@ -602,7 +605,7 @@ function plot() {
   let stop = width * parseFloat(settingTargetStop.value);
   ctx.beginPath();
   ctx.moveTo(0, stop);
-  ctx.lineTo(1000, stop);
+  ctx.lineTo(2000, stop);
   ctx.stroke();
 
   // draw the commit point
@@ -612,6 +615,8 @@ function plot() {
   ctx.moveTo(commitDelay, 0);
   ctx.lineTo(commitDelay, width);
   ctx.stroke();
+
+  ctx.restore();
 
 }
 

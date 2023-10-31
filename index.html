@@ -28,9 +28,9 @@
       <div class="slider-label">
         <h2>commit delay: <span id="networkDelayDisplay"></span><span></span></h2>
         <input id="networkDelayInput" type="range" min="50" max="2400" value="200" step="50">
-        <p><span id="percentileDisplay">how long to commit</span></p>
       </div>
     </div>
+    <canvas id="plot" width="300px" height="100px" style="border:1px solid #000000;"></canvas>
     <div class="slider-window">
       <div class="slider-label modes">
         <h2>Modes</h2>
@@ -119,7 +119,6 @@
         </select>
       </div>
     </div>
-    <canvas id="plot" width="200px" height="100px" style="border:1px solid #000000;"></canvas>
   </div>
   <div id=screenshots class=touch-target style=display:none>
     <div class=screenshot_container id=midimg>
