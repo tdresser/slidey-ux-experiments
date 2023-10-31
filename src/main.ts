@@ -679,6 +679,7 @@ function plot() {
 function updateDelay() {
   let delay = parseInt(networkDelayInput.value);
   networkDelayDisplay.innerHTML = delay + "ms " + formatPercentile(delay);
+  plot();
 }
 
 function updateDisplays( resetPreset = true ) {
