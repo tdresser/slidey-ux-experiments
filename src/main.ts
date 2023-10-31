@@ -693,7 +693,7 @@ function updateDisplays( resetPreset = true ) {
 
   pulseScrim = !!settingPulseScrim.checked;
 
-  targetStopDisplay.innerHTML = `${100 * parseFloat(settingTargetStop.value)}`;
+  targetStopDisplay.innerHTML = `${Math.round(100.0 * parseFloat(settingTargetStop.value))}`;
 
   physicsModel.updateDisplays();
   plot();
