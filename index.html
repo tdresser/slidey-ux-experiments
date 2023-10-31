@@ -33,6 +33,12 @@
     <canvas id="plot" width="300px" height="100px" style="border:1px solid #000000;"></canvas>
     <div class="slider-window">
       <div class="slider-label">
+        <h2>target commit stop: <span id="targetStopDisplay"></span><span>%</span></h2>
+        <input id="settingTargetStop" type="range" min="0.1" max="0.95" value="0.8" step="0.05">
+      </div>
+    </div>
+    <div class="slider-window">
+      <div class="slider-label">
         <h2>preset:
         <select id="preset">
           <option value="slowBounce">Slow bounce</option>
@@ -115,12 +121,6 @@
           <input id="settingProgressAttribution" type="checkbox" checked>
           attribute progress bar to page
         </label>
-      </div>
-    </div>
-    <div class="slider-window">
-      <div class="slider-label">
-        <h2>target commit stop: <span id="targetStopDisplay"></span><span>%</span></h2>
-        <input id="settingTargetStop" type="range" min="0.1" max="0.95" value="0.8" step="0.05">
       </div>
     </div>
     <div class="slider-window">
