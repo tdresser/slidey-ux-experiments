@@ -54,9 +54,9 @@ export abstract class PhysicsModel {
     }
 
     abstract advance(rafTime: number): AdvanceResult;
-    abstract pointerDown(e:PointerEvent): void;
-    abstract pointerMove(e:PointerEvent): AdvanceResult;
-    pointerUp(_:PointerEvent): "success" | "abort" {
+    abstract pointerDown(clientX: number): void;
+    abstract pointerMove(clientX: number, timeStamp: number): AdvanceResult;
+    pointerUp(): "success" | "abort" {
         return "success";
     }
     abstract updateDisplays(): void;

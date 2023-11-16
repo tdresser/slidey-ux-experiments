@@ -270,15 +270,15 @@ export class SpringPhysicsModel extends PhysicsModel {
         }
     }
 
-    pointerDown(e:PointerEvent) {
-        this.pointerDownX = e.clientX;
+    pointerDown(clientX: number) {
+        this.pointerDownX = clientX;
     }
 
-    pointerMove(e: PointerEvent): AdvanceResult {
-        this.offset = this.fingerDragCurve(e.clientX - this.pointerDownX);
+    pointerMove(clientX: number, timeStamp: number): AdvanceResult {
+        this.offset = this.fingerDragCurve(clientX - this.pointerDownX);
         this.pointerHistory.push({
             offset: this.offset,
-            time: e.timeStamp
+            time: timeStamp
         })
         if (this.pointerHistory.length > 10) {
             this.pointerHistory.shift();
@@ -323,7 +323,7 @@ export class SpringPhysicsModel extends PhysicsModel {
       this.parallaxTo80 = flag;
     }
 
-    pointerUp(_: PointerEvent): "success" | "abort" {
+    pointerUp(): "success" | "abort" {
         // Don't let us overshoot too far. TODO: tune this.
         let velocity;
         if (!this.snapping && this.mode == "snapto") {

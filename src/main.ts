@@ -1,6 +1,6 @@
 import './style.css'
 import { SpringPhysicsModel } from './SpringPhysicsModel.ts';
-import { PhysicsModel } from './PhysicsModel.ts';
+import { AdvanceResult, PhysicsModel } from './PhysicsModel.ts';
 import { fail } from './util.ts';
 
 
@@ -8,6 +8,7 @@ let animating = false;
 let pointingDown = false;
 let aborting = false;
 let hasCommitted = false;
+let rightToLeft = false;
 
 // Tracking post commit animations.
 let animatingLoadingBar = false;
@@ -73,6 +74,7 @@ let loadTime = 0;
 let bucket_name = ["P25", "P50", "P75", "P90", "P95", "P99"];
 let bucket = [30, 100, 330, 660, 1000, 2360];
 
+
 function formatPercentile(ms: number): string {
   let i=0; 
   while(ms>bucket[i]) i++;
@@ -94,6 +96,27 @@ interface StringByString {
 
 let initialState: StringByString = {};
 saveInitialState();
+
+function mirrorIfNeededNum(value: number): number {
+  if (rightToLeft) {
+     const width = document.documentElement.getBoundingClientRect().width;
+     return width - value;
+  }
+
+  return value;
+}
+
+function mirrorIfNeeded(result: AdvanceResult): AdvanceResult {           
+  if (!rightToLeft)
+    return result;
+
+  return {
+            done: result.done,
+            fgOffset: -result.fgOffset,
+            bgOffset: Math.abs(result.bgOffset),
+            hasCommitted: result.hasCommitted
+        }
+}
 
 function saveInitialState() {
   let inputs = document.querySelectorAll("input");
@@ -241,7 +264,12 @@ function handlePointerDown(e: PointerEvent) {
 
   pointingDown = true;
   physicsModel = initPhysics();
-  physicsModel.pointerDown(e);
+
+  const width = document.documentElement.getBoundingClientRect().width;
+  if (e.clientX > (width / 2))
+     rightToLeft = true;
+
+  physicsModel.pointerDown(mirrorIfNeededNum(e.clientX));
 }
 
 function offsetToScrimPercent(offsetAsPercent: number) {
@@ -267,18 +295,19 @@ function handlePointerMove(e: PointerEvent) {
   chevronAccumulator = Math.min(Math.max(chevronAccumulator + dx, 0), chevronMaxValue);
   updateChevron(chevronAccumulator / chevronMaxValue);
 
-  let moveResult = physicsModel.pointerMove(e);
+  let moveResult = physicsModel.pointerMove(mirrorIfNeededNum(e.clientX), e.timeStamp);
+  let mirroredResult = mirrorIfNeeded(moveResult);
 
   let fgOffsetAsPercent = moveResult.fgOffset / document.documentElement.getBoundingClientRect().width;
 
-  document.documentElement.style.setProperty("--fg-offset", `${moveResult.fgOffset}px`);
-  document.documentElement.style.setProperty("--bg-offset", `${moveResult.bgOffset}px`);
+  document.documentElement.style.setProperty("--fg-offset", `${mirroredResult.fgOffset}px`);
+  document.documentElement.style.setProperty("--bg-offset", `${mirroredResult.bgOffset}px`);
   document.documentElement.style.setProperty("--scrim", `${offsetToScrimPercent(fgOffsetAsPercent)}`);
 
   applyFilter(fgOffsetAsPercent);
 
-  updateZoom(moveResult.fgOffset);
-  updatePop(moveResult.fgOffset);
+  updateZoom(fgOffsetAsPercent);
+  updatePop(fgOffsetAsPercent);
 }
 
 let chevronPop : boolean = false;
@@ -310,13 +339,11 @@ function updateChevron(percent: number) {
   }
 }
 
-function updateZoom(offset: number) {
-  let offsetAsPercent = offset / document.documentElement.getBoundingClientRect().width;
+function updateZoom(offsetAsPercent: number) {
   let fgScale = 1.0 - (1.0 - pop) * offsetAsPercent;
   document.documentElement.style.setProperty("--fg-scale", `${fgScale}`);
 }
-function updatePop(offset: number) {
-  let offsetAsPercent = offset / document.documentElement.getBoundingClientRect().width;
+function updatePop(offsetAsPercent: number) {
   if (offsetAsPercent > 0.5) {
     if (!popped) {
       let anim = document.documentElement.animate([{ '--bg-scale': pop }], { duration: 100, fill: "forwards" });
@@ -350,7 +377,7 @@ function handlePointerUp(e: PointerEvent) {
   }
   pointingDown = false;
   hasCommitted = false;
-  const aborted = physicsModel.pointerUp(e) == "abort";
+  const aborted = physicsModel.pointerUp() == "abort";
 
   if (aborted) {
     animateOnAbort();
@@ -430,8 +457,9 @@ let pulseScrim = !!settingPulseScrim.checked;
 
 function advance(rafTime: number, finished: (d?: unknown) => void) {
   const advanceResult = physicsModel.advance(rafTime);
-  document.documentElement.style.setProperty("--fg-offset", `${advanceResult.fgOffset}px`);
-  document.documentElement.style.setProperty("--bg-offset", `${advanceResult.bgOffset}px`);
+  const mirroredResult = mirrorIfNeeded(advanceResult);
+  document.documentElement.style.setProperty("--fg-offset", `${mirroredResult.fgOffset}px`);
+  document.documentElement.style.setProperty("--bg-offset", `${mirroredResult.bgOffset}px`);
 
   let fgOffsetAsPercent = advanceResult.fgOffset / document.documentElement.getBoundingClientRect().width;
   const scrimBase = offsetToScrimPercent(fgOffsetAsPercent);
@@ -441,7 +469,7 @@ function advance(rafTime: number, finished: (d?: unknown) => void) {
     scrim += 0.1 * Math.sin(2 * Math.PI * (rafTime - startTime) / 1000 + Math.PI);
   }
   document.documentElement.style.setProperty("--scrim", `${scrim}`);
-  updateZoom(advanceResult.fgOffset);
+  updateZoom(fgOffsetAsPercent);
   if (rafTime - startTime > 350) {
     progress.style.display = "block";
   }
@@ -468,6 +496,7 @@ function startAnimation() {
 
 function finishScrimAnimation() {
   animatingScrim = false;
+  rightToLeft = false;
   document.documentElement.style.setProperty("--fg-offset", '0px');
   document.documentElement.style.setProperty("--vertical-offset", '0px');
   document.documentElement.style.setProperty("--scrim", "0.0");
