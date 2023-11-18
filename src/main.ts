@@ -52,10 +52,14 @@ const frontimg = document.getElementById("frontimg")?.querySelector("img") as HT
 const midimg = document.getElementById("midimg")?.querySelector("img") as HTMLImageElement ?? fail();
 const midimgprecommit = document.getElementById("midimgprecommit")?.querySelector("img") as HTMLImageElement ?? fail();
 
+const frontimgcontainer = document.getElementById("frontimg") as HTMLImageElement ?? fail();
+const midimgcontainer = document.getElementById("midimg") as HTMLImageElement ?? fail();
+
 const settingZoom = document.getElementById("settingZoom") as HTMLInputElement ?? fail();
 const settingProgressAttribution = document.getElementById("settingProgressAttribution") as HTMLInputElement ?? fail();
 const settingUnloadHandler = document.getElementById("settingUnloadHandler") as HTMLInputElement ?? fail();
 const settingBoostVelocity = document.getElementById("settingBoostVelocity") as HTMLInputElement ?? fail();
+const settingBidirectionalBack = document.getElementById("settingBidirectionalBack") as HTMLInputElement ?? fail();
 const settingTargetStop = document.getElementById("settingTargetStop") as HTMLInputElement ?? fail();
 const settingFadeForeground = document.getElementById("settingFadeForeground") as HTMLInputElement ?? fail();
 const settingWobble = document.getElementById("settingWobble") as HTMLInputElement ?? fail();
@@ -110,10 +114,21 @@ function mirrorIfNeeded(result: AdvanceResult): AdvanceResult {
   if (!rightToLeft)
     return result;
 
+  let fgOffset;
+  let bgOffset;
+  if (!!settingBidirectionalBack.checked) {
+    fgOffset = -result.fgOffset;
+    bgOffset = Math.abs(result.bgOffset);
+  } else {
+    const width = document.documentElement.getBoundingClientRect().width;
+    fgOffset = Math.abs(result.fgOffset - width);
+    bgOffset = -(result.bgOffset + (0.25 * width)); 
+  }
+
   return {
             done: result.done,
-            fgOffset: -result.fgOffset,
-            bgOffset: Math.abs(result.bgOffset),
+            fgOffset: fgOffset,
+            bgOffset: bgOffset,
             hasCommitted: result.hasCommitted
         }
 }
@@ -282,6 +297,16 @@ let lastPointerMoveEvent : PointerEvent | null = null;
 let chevronAccumulator : number = 0;
 let chevronMaxValue : number = 50;
 
+function switchImageStacking() {
+  if (!rightToLeft || !!settingBidirectionalBack.checked)
+    return;
+
+  frontimgcontainer.classList.toggle("top_screenshot");
+  frontimgcontainer.classList.toggle("bottom_screenshot");
+   
+  midimgcontainer.classList.toggle("top_screenshot");
+  midimgcontainer.classList.toggle("bottom_screenshot");
+}
 function handlePointerMove(e: PointerEvent) {
   if (!pointingDown) {
     return;
@@ -289,7 +314,9 @@ function handlePointerMove(e: PointerEvent) {
 
   if (!lastPointerMoveEvent) {
     lastPointerMoveEvent = e;
+    switchImageStacking();
   }
+
   let dx = e.x - lastPointerMoveEvent.x;
   lastPointerMoveEvent = e;
   chevronAccumulator = Math.min(Math.max(chevronAccumulator + dx, 0), chevronMaxValue);
@@ -496,13 +523,15 @@ function startAnimation() {
 
 function finishScrimAnimation() {
   animatingScrim = false;
-  rightToLeft = false;
   document.documentElement.style.setProperty("--fg-offset", '0px');
   document.documentElement.style.setProperty("--vertical-offset", '0px');
   document.documentElement.style.setProperty("--scrim", "0.0");
   document.documentElement.style.setProperty("--bg-scale", zoom.toString());
   document.documentElement.style.setProperty("--fg-scale", "1.0");
   midimgprecommit.style.opacity = "1";
+  
+  switchImageStacking();
+  rightToLeft = false;
 
   if (!aborting) {
     rotateImgs();

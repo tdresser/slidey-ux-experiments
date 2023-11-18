@@ -144,20 +144,22 @@ body.test {
   right: 20px;
   box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.4);
   font-size: 20pt;
+  z-index: 2;
 }
 
 #buttonTest {
   font-size: 20pt;
 }
 
-#frontimg {
+.top_screenshot {
+  z-index: 1;
   transform: translateX(var(--fg-offset)) translateY(var(--vertical-offset)) scale(var(--fg-scale));
 }
 #frontimg > img {
   border-radius: calc((1.0 - var(--fg-scale))*200px);
 }
 
-#midimg {
+.bottom_screenshot {
   transform: translateX(var(--bg-offset)) scale(var(--bg-scale));
 }
 #midimg > img {
@@ -165,42 +167,6 @@ body.test {
 }
 #midimgprecommit > img {
   border-radius: calc((1.0 - var(--bg-scale))*200px);
-}
-
-::view-transition-old(root) {
-  animation: unset;
-  transform: translateX(var(--fg-offset)) translateY(var(--vertical-offset)) scale(var(--fg-scale));
-  opacity: 1;
-  z-index: 1;
-  box-shadow: 0 0 10px black;
-}
-
-::view-transition-new(root) {
-  animation: unset;
-  transform: translateX(var(--bg-offset)) scale(var(--bg-scale));
-  opacity: 1;
-}
-
-::view-transition {
-  pointer-events: none;
-}
-
-::view-transition-new(root) {
-  animation: unset;
-  opacity: 1;
-  z-index: 0;
-}
-
-::view-transition-group(progress) {
-  z-index: 999;
-}
-::view-transition-old(progress) {
-  animation: unset;
-  opacity: 0;
-}
-::view-transition-new(progress) {
-  animation: unset;
-  opacity: 1;
 }
 
 #scrim {

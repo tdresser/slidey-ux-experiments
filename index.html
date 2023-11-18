@@ -61,6 +61,10 @@
           <input id="settingBoostVelocity" type="checkbox" checked>
           boost velocity
         </label>
+        <label class=check-box-label>
+          <input id="settingBidirectionalBack" type="checkbox" checked>
+          back navigation on both edges
+        </label>
         <label class=check-box-label style="display:none">
           <input id="settingFadeForeground" type="checkbox">
           fade foreground
@@ -136,7 +140,7 @@
     </div>
   </div>
   <div id=screenshots class=touch-target style=display:none>
-    <div class=screenshot_container id=midimg>
+    <div class="screenshot_container bottom_screenshot" id=midimg>
       <img class=screenshot src=/resources/srp-couches.png>
       <div class=screenshot_container id=midimgprecommit>
         <img class=screenshot src=/resources/srp-cats.png>
@@ -146,7 +150,7 @@
         <progress style="width:100%" class="bar pure-material-progress-linear"/>
       </div>
     </div>
-    <div class=screenshot_container id=frontimg>
+    <div class="screenshot_container top_screenshot" id=frontimg>
       <img class=screenshot src=resources/srp-cats.png>
     </div>
     <input type=button value="Settings" id=buttonSettings></input>
