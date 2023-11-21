@@ -60,6 +60,7 @@ const settingProgressAttribution = document.getElementById("settingProgressAttri
 const settingUnloadHandler = document.getElementById("settingUnloadHandler") as HTMLInputElement ?? fail();
 const settingBoostVelocity = document.getElementById("settingBoostVelocity") as HTMLInputElement ?? fail();
 const settingBidirectionalBack = document.getElementById("settingBidirectionalBack") as HTMLInputElement ?? fail();
+const settingBidirectionalBackParallax = document.getElementById("settingBidirectionalBackParallax") as HTMLInputElement ?? fail();
 const settingTargetStop = document.getElementById("settingTargetStop") as HTMLInputElement ?? fail();
 const settingFadeForeground = document.getElementById("settingFadeForeground") as HTMLInputElement ?? fail();
 const settingWobble = document.getElementById("settingWobble") as HTMLInputElement ?? fail();
@@ -118,7 +119,11 @@ function mirrorIfNeeded(result: AdvanceResult): AdvanceResult {
   let bgOffset;
   if (!!settingBidirectionalBack.checked) {
     fgOffset = -result.fgOffset;
-    bgOffset = Math.abs(result.bgOffset);
+    if (!!settingBidirectionalBackParallax.checked) {
+      bgOffset = Math.abs(result.bgOffset);
+    } else {
+      bgOffset = 0;
+    }
   } else {
     const width = document.documentElement.getBoundingClientRect().width;
     fgOffset = Math.abs(result.fgOffset - width);
