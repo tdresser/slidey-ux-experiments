@@ -54,6 +54,10 @@
       <div class="slider-label modes">
         <h2>Modes</h2>
         <label class=check-box-label>
+          <input id="settingScrimOnBottom" type="checkbox">
+          scrim always on bottom page
+        </label>
+        <label class=check-box-label>
           <input id="settingUnloadHandler" type="checkbox">
           unload handler
         </label>
@@ -145,18 +149,19 @@
     </div>
   </div>
   <div id=screenshots class=touch-target style=display:none>
-    <div class="screenshot_container bottom_screenshot" id=midimg>
+    <div class="screenshot_container bottom_screenshot show_scrim" id=midimg>
       <img class=screenshot src=/resources/srp-couches.png>
       <div class=screenshot_container id=midimgprecommit>
         <img class=screenshot src=/resources/srp-cats.png>
       </div>
-      <div id="scrim" style="display: none"></div>
+      <div  class="scrim"></div>
       <div id="attributedProgress" style="display:none">
         <progress style="width:100%" class="bar pure-material-progress-linear"/>
       </div>
     </div>
     <div class="screenshot_container top_screenshot" id=frontimg>
       <img class=screenshot src=resources/srp-cats.png>
+      <div class="scrim"></div>
     </div>
     <input type=button value="Settings" id=buttonSettings></input>
   </div>

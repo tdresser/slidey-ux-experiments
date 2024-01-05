@@ -31,7 +31,6 @@ let screenshots: Screenshot[] = [
 let nextImgIndex = 0;
 
 const body = document.body ?? fail();
-const scrim = document.getElementById("scrim") ?? fail();
 const globalProgress = document.getElementById("globalProgress") ?? fail();
 const attributedProgress = document.getElementById("attributedProgress") ?? fail();
 const networkDelayInput = document.getElementById("networkDelayInput") as HTMLInputElement ?? fail();
@@ -68,6 +67,7 @@ const settingSlowDrift = document.getElementById("settingSlowDrift") as HTMLInpu
 const settingPulseScrim = document.getElementById("settingPulseScrim") as HTMLInputElement;
 const settingPostpone = document.getElementById("settingPostpone") as HTMLInputElement ?? fail();
 const settingParallaxTo80 = document.getElementById("settingParallaxTo80") as HTMLInputElement ?? fail();
+const settingScrimOnBottom = document.getElementById("settingScrimOnBottom") as HTMLInputElement ?? fail();
 
 let progress = attributedProgress;
 let progress_bar = progress.querySelector(".bar") as HTMLProgressElement;
@@ -292,7 +292,16 @@ function handlePointerDown(e: PointerEvent) {
   physicsModel.pointerDown(mirrorIfNeededNum(e.clientX));
 }
 
+function scrimOnBottomForForward() {
+  if (!rightToLeft || !!settingBidirectionalBack.checked)
+    return false;
+
+  return !!settingScrimOnBottom.checked;
+}
+
 function offsetToScrimPercent(offsetAsPercent: number) {
+  if (scrimOnBottomForForward())
+    return offsetAsPercent * 0.8;
   return 0.3 + (1 - offsetAsPercent) * 0.5;
 }
 
@@ -308,10 +317,17 @@ function switchImageStacking() {
 
   frontimgcontainer.classList.toggle("top_screenshot");
   frontimgcontainer.classList.toggle("bottom_screenshot");
-   
+  if (scrimOnBottomForForward()) {
+    frontimgcontainer.classList.toggle("show_scrim");
+  }
+
   midimgcontainer.classList.toggle("top_screenshot");
   midimgcontainer.classList.toggle("bottom_screenshot");
+  if (scrimOnBottomForForward()) {
+    midimgcontainer.classList.toggle("show_scrim");
+  }
 }
+
 function handlePointerMove(e: PointerEvent) {
   if (!pointingDown) {
     return;
@@ -799,7 +815,6 @@ function rotateImgs() {
 
 function runTest() {
   settingsPanel.style.display = "none";
-  scrim.style.display = "block";
   screenshotsContainer.style.display = "block";
   document.documentElement.style.setProperty("--main-background-color", `#202020`);
   body.classList.add("test");
@@ -807,7 +822,6 @@ function runTest() {
 
 function stopTest() {
   settingsPanel.style.display = "flex";
-  scrim.style.display = "none";
   screenshotsContainer.style.display = "none";
   document.documentElement.style.setProperty("--main-background-color", `white`);
   body.classList.remove("test");

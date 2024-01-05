@@ -169,7 +169,7 @@ body.test {
   border-radius: calc((1.0 - var(--bg-scale))*200px);
 }
 
-#scrim {
+.show_scrim .scrim {
   position: absolute;
   inset: 0;
   background: black;

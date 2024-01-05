@@ -5,8 +5,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Default Nav Transitions</title>
-  <script type="module" crossorigin src="/slidey-ux-experiments/assets/index-47dcdb15.js"></script>
-  <link rel="stylesheet" href="/slidey-ux-experiments/assets/index-58517029.css">
+  <script type="module" crossorigin src="/slidey-ux-experiments/assets/index-14444553.js"></script>
+  <link rel="stylesheet" href="/slidey-ux-experiments/assets/index-a5db21f3.css">
 </head>
 
 <body>
@@ -55,6 +55,10 @@
     <div class="slider-window">
       <div class="slider-label modes">
         <h2>Modes</h2>
+        <label class=check-box-label>
+          <input id="settingScrimOnBottom" type="checkbox">
+          scrim always on bottom page
+        </label>
         <label class=check-box-label>
           <input id="settingUnloadHandler" type="checkbox">
           unload handler
@@ -147,18 +151,19 @@
     </div>
   </div>
   <div id=screenshots class=touch-target style=display:none>
-    <div class="screenshot_container bottom_screenshot" id=midimg>
+    <div class="screenshot_container bottom_screenshot show_scrim" id=midimg>
       <img class=screenshot src=/slidey-ux-experiments/resources/srp-couches.png>
       <div class=screenshot_container id=midimgprecommit>
         <img class=screenshot src=/slidey-ux-experiments/resources/srp-cats.png>
       </div>
-      <div id="scrim" style="display: none"></div>
+      <div  class="scrim"></div>
       <div id="attributedProgress" style="display:none">
         <progress style="width:100%" class="bar pure-material-progress-linear"/>
       </div>
     </div>
     <div class="screenshot_container top_screenshot" id=frontimg>
       <img class=screenshot src=resources/srp-cats.png>
+      <div class="scrim"></div>
     </div>
     <input type=button value="Settings" id=buttonSettings></input>
   </div>
