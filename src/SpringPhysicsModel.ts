@@ -123,7 +123,7 @@ export class SpringPhysicsModel extends PhysicsModel {
     wobbleInput = document.getElementById("settingWobble") as HTMLInputElement ?? fail();
     wobble = !!this.wobbleInput.checked;
 
-    postpone = false;
+    postpone = true;
     postponed = 0;
 
     constructor(init: PhysicsModelInit) {
