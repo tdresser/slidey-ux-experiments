@@ -118,19 +118,12 @@ export class SpringPhysicsModel extends PhysicsModel {
     hookAtPercent = parseFloat(this.hookAtInput.value);
     hooked = false;
     pointerDownX: number = 0;
-
-    dontBounceBackpageInput = document.getElementById("settingDontBounceBackpage") as HTMLInputElement ?? fail();
-    dontBounceBackpage = !!this.dontBounceBackpageInput.checked;
+    dontBounceBackpage = true;  
 
     wobbleInput = document.getElementById("settingWobble") as HTMLInputElement ?? fail();
     wobble = !!this.wobbleInput.checked;
 
-    slowDriftInput = document.getElementById("settingSlowDrift") as HTMLInputElement ?? fail();
-    slowDrift = !!this.slowDriftInput.checked;
-
-    postponeInput = document.getElementById("settingPostpone") as HTMLInputElement ?? fail();
-    postpone = !!this.postponeInput.checked;
-
+    postpone = false;
     postponed = 0;
 
     constructor(init: PhysicsModelInit) {
@@ -141,11 +134,8 @@ export class SpringPhysicsModel extends PhysicsModel {
         this.spring80DampingRatioInput.addEventListener("input", () => this.updateDisplays());
         this.preserveMinOscillationInput.addEventListener("input", () => this.updateDisplays());
         this.hookAtInput.addEventListener("input", () => this.updateDisplays());
-        this.dontBounceBackpageInput.addEventListener("input", () => this.updateDisplays());
         this.wobbleInput.addEventListener("input", () => this.updateDisplays());
-        this.slowDriftInput.addEventListener("input", () => this.updateDisplays());
-        this.postponeInput.addEventListener("input", () => this.updateDisplays());
-
+        
         this.#spring100 = new Spring({
             frequencyResponse: 200,
             dampingRatio: 0.95,
@@ -177,12 +167,9 @@ export class SpringPhysicsModel extends PhysicsModel {
         this.spring80DampingRatioDisplay.innerHTML = this.spring80DampingRatioInput.value;
         this.preserveMinOscillationDisplay.innerHTML = this.preserveMinOscillationInput.value;
         this.hookAtDisplay.innerHTML = this.hookAtInput.value;
-        this.dontBounceBackpage = !!this.dontBounceBackpageInput.checked;
         this.wobble = !!this.wobbleInput.checked;
-        this.slowDrift = !!this.slowDriftInput.checked;
         this.#spring80.preserveMinOscillation = parseFloat(this.preserveMinOscillationInput.value);
-        this.postpone = !!this.postponeInput.checked;
-    }
+   }
 
     advance(rafTime: number): AdvanceResult {
         rafTime = rafTime;
@@ -224,11 +211,8 @@ export class SpringPhysicsModel extends PhysicsModel {
             // Prevent overshoot here.
             this.offset = Math.max(springResult.offset, 0);
         } else if (!this.hasCommitted) {
-            let targetStopPercent = this.targetStopPercent;
-            if (this.slowDrift) {
-                targetStopPercent -= 0.25;
-            }
-            springResult = this.#spring80.position(this.maxOffset * targetStopPercent - this.animationStartOffset, time);
+           let targetStopPercent = this.targetStopPercent;
+           springResult = this.#spring80.position(this.maxOffset * targetStopPercent - this.animationStartOffset, time);
             this.offset = this.maxOffset * targetStopPercent - springResult.offset;
         } else {
             springResult = this.#spring100.position(this.maxOffset - this.animationStartOffset, time);
@@ -248,12 +232,6 @@ export class SpringPhysicsModel extends PhysicsModel {
             // wobble a distance of 2% of width about 1 cycle per half second
             this.offset += this.maxOffset * 0.02 * Math.sin(2*Math.PI*time/1000);
         }
-        if (this.slowDrift && !this.hasCommitted) {
-            // drift slowly towards the right getting slower as you go
-            let driftDistance = this.maxOffset * 0.25;
-            this.offset += driftDistance - driftDistance * 1000.0/(time+1000);
-        }
-
         let bgOffset = this.offset;
         if (this.dontBounceBackpage) {
             springResult = this.#spring0.position(this.maxOffset - this.animationStartOffset, rafTime - this.loadStart);

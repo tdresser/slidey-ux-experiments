@@ -63,10 +63,6 @@ const settingBidirectionalBackParallax = document.getElementById("settingBidirec
 const settingTargetStop = document.getElementById("settingTargetStop") as HTMLInputElement ?? fail();
 const settingFadeForeground = document.getElementById("settingFadeForeground") as HTMLInputElement ?? fail();
 const settingWobble = document.getElementById("settingWobble") as HTMLInputElement ?? fail();
-const settingSlowDrift = document.getElementById("settingSlowDrift") as HTMLInputElement ?? fail();
-const settingPulseScrim = document.getElementById("settingPulseScrim") as HTMLInputElement;
-const settingPostpone = document.getElementById("settingPostpone") as HTMLInputElement ?? fail();
-const settingParallaxTo80 = document.getElementById("settingParallaxTo80") as HTMLInputElement ?? fail();
 const settingScrimOnBottom = document.getElementById("settingScrimOnBottom") as HTMLInputElement ?? fail();
 
 let progress = attributedProgress;
@@ -221,14 +217,11 @@ interface Preset {
 
 let presets: Preset = {
   "quickBounce": {
-    "settingPostpone": "true",
-    "settingPulseScrim": "true",
     "spring80FrequencyResponse": "400", 
     "preserveMinOscillation": "0.02"
   },
   "slowBounce": {
-    "settingPostpone": "true",
-    "spring80FrequencyResponse": "800", 
+   "spring80FrequencyResponse": "800", 
     "spring80DampingRatio": "1.2",
     "preserveMinOscillation": "0.04"
   },
@@ -240,7 +233,6 @@ let presets: Preset = {
   "drift": {
     "settingBoostVelocity": "false",
     "spring80FrequencyResponse": "800",
-    "settingSlowDrift": "true",
     "preserveMinOscillation": "0.04"
   },
   "none": {
@@ -501,8 +493,6 @@ function animateLoadingProgressBar() {
 let physicsModel: PhysicsModel = initPhysics();
 finishAllAnimation();
 
-let pulseScrim = !!settingPulseScrim.checked;
-
 function advance(rafTime: number, finished: (d?: unknown) => void) {
   const advanceResult = physicsModel.advance(rafTime);
   const mirroredResult = mirrorIfNeeded(advanceResult);
@@ -513,9 +503,6 @@ function advance(rafTime: number, finished: (d?: unknown) => void) {
   const scrimBase = offsetToScrimPercent(fgOffsetAsPercent);
   applyFilter(fgOffsetAsPercent);
   let scrim = scrimBase;
-  if (pulseScrim) {
-    scrim += 0.1 * Math.sin(2 * Math.PI * (rafTime - startTime) / 1000 + Math.PI);
-  }
   document.documentElement.style.setProperty("--scrim", `${scrim}`);
   updateZoom(fgOffsetAsPercent);
   if (rafTime - startTime > 350) {
@@ -708,7 +695,7 @@ function initPhysics(): PhysicsModel {
     targetStopPercent: targetStopPercent
   });
   result.setMode(dragCurveInput.value);
-  result.setParallaxTo80(!!settingParallaxTo80.checked);
+  result.setParallaxTo80(false);
   return result;
 }
 
@@ -772,8 +759,6 @@ function updateDisplays( resetPreset = true ) {
   zoom = parseInt(settingZoom.value) / 100.0;
   pop = zoom + (1.0 - zoom) / 3; // 1/3 betwen zoom to 1.0
   zoomDisplay.innerHTML = settingZoom.value.toString();
-
-  pulseScrim = !!settingPulseScrim.checked;
 
   targetStopDisplay.innerHTML = `${Math.round(100.0 * parseFloat(settingTargetStop.value))}`;
 
@@ -861,9 +846,6 @@ function init() {
   hookAtInput.addEventListener("input", () => updateDisplays());
 
   settingWobble.addEventListener("input", () => updateDisplays());
-  settingSlowDrift.addEventListener("input", () => updateDisplays());
-  settingPulseScrim.addEventListener("input", () => updateDisplays());
-  settingPostpone.addEventListener("input", () => updateDisplays());
 
   buttonTest.addEventListener("click", runTest);
   buttonSettings.addEventListener("click", stopTest);
