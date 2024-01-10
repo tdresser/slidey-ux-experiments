@@ -72,6 +72,8 @@ let globalBar = globalProgress.querySelector(".bar") as HTMLProgressElement;
 let startTime = 0;
 let loadTime = 0;
 
+let loadStartTime = 0;
+
 let bucket_name = ["P25", "P50", "P75", "P90", "P95", "P99"];
 let bucket = [30, 100, 330, 660, 1000, 2360];
 
@@ -484,9 +486,14 @@ function animateLoadingProgressBar() {
     return;
   }
 
+  if (loadStartTime == 0) {
+    loadStartTime = currentTime;
+  }
+  let loadDelay = loadTime - loadStartTime;
+
   globalProgress.style.display = "block";
-  globalBar.max = loadTime - startTime;
-  globalBar.value = currentTime - startTime;
+  globalBar.max = loadDelay;
+  globalBar.value = Math.max((currentTime - loadStartTime), 0.1 * loadDelay);
   requestAnimationFrame(animateLoadingProgressBar);
 }
 
@@ -523,6 +530,7 @@ function startAnimation() {
   animating = true;
   startTime = performance.now();
   loadTime = startTime + delayToFullLoadMs();
+  loadStartTime = 0;
   physicsModel.startAnimating(startTime);
   return new Promise(resolve => {
     advance(performance.now(), resolve);
