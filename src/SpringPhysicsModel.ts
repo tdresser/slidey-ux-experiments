@@ -118,7 +118,7 @@ export class SpringPhysicsModel extends PhysicsModel {
     hookAtPercent = parseFloat(this.hookAtInput.value);
     hooked = false;
     pointerDownX: number = 0;
-    dontBounceBackpage = true;  
+    dontBounceBackpage = false;  
 
     wobbleInput = document.getElementById("settingWobble") as HTMLInputElement ?? fail();
     wobble = !!this.wobbleInput.checked;
