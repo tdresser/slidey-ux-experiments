@@ -282,6 +282,8 @@ function handlePointerDown(e: PointerEvent) {
   const width = document.documentElement.getBoundingClientRect().width;
   if (e.clientX > (width / 2))
      rightToLeft = true;
+  else
+     rightToLeft = false;
 
   physicsModel.pointerDown(mirrorIfNeededNum(e.clientX));
 }
@@ -306,9 +308,10 @@ let chevronAccumulator : number = 0;
 let chevronMaxValue : number = 50;
 
 function switchImageStacking() {
-  if (!rightToLeft || !!settingBidirectionalBack.checked)
+  if (!rightToLeft || !!settingBidirectionalBack.checked) {
     return;
-
+  }
+ 
   frontimgcontainer.classList.toggle("top_screenshot");
   frontimgcontainer.classList.toggle("bottom_screenshot");
   if (scrimOnBottomForForward()) {
@@ -426,20 +429,41 @@ function handlePointerUp(e: PointerEvent) {
     // Reset the color when the animation finished.
     aborting = true;
   } else if (settingUnloadHandler.checked) {
-    let offset = document.documentElement.style.getPropertyValue("--fg-offset");
-    let scale = document.documentElement.style.getPropertyValue("--fg-scale");
-    let anim = document.documentElement.animate([{ '--fg-scale': 1.0, '--fg-offset': '0px' }], { duration: 300, fill: "forwards" });
+    let currentFgOffset = document.documentElement.style.getPropertyValue("--fg-offset");
+    let currentBgOffset = document.documentElement.style.getPropertyValue("--bg-offset");
+    let currentScrim = document.documentElement.style.getPropertyValue("--scrim"); 
+
+    let endFgOffset = 0;
+    let endBgOffset = -0.25 * document.documentElement.getBoundingClientRect().width;
+    let endScrim = 0.8;
+    if (rightToLeft) {
+      endFgOffset = document.documentElement.getBoundingClientRect().width;
+      endBgOffset = 0;
+      endScrim = 0;
+    }
+    console.log("endoffset is " + endFgOffset);
+    let anim = document.documentElement.animate([
+      { '--scrim': endScrim,  '--fg-scale': 1.0, '--fg-offset': endFgOffset + 'px', '--bg-offset': endBgOffset + 'px' }],
+      { duration: 300, fill: "forwards" });
     anim.finished.then(() => {
       anim.commitStyles();
       anim.cancel();
       if (window.confirm("are you sure you want to leave this page?  It's very nice.")) {
-        let anim = document.documentElement.animate([{ '--fg-scale': scale, '--fg-offset': offset }], { duration: 200, fill: "forwards" });
+        let anim = document.documentElement.animate([
+          { '--scrim': currentScrim,  '--fg-scale': 1.0, '--fg-offset': currentFgOffset + 'px', '--bg-offset': currentBgOffset + 'px' }],
+          { duration: 300, fill: "forwards" });
         anim.finished.then(() => {
           anim.commitStyles();
           anim.cancel();
-          animateOnAbort();
           startAnimation().then(animatePostCommitOrAbort);
         });
+      } else {
+        switchImageStacking();
+        if (rightToLeft) {
+          document.documentElement.style.setProperty("--fg-offset", '0px');
+          document.documentElement.style.setProperty("--bg-offset", '0px');
+          rightToLeft = false;
+        }
       }
     });
     return;
