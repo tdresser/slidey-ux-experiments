@@ -59,7 +59,7 @@ const settingProgressAttribution = document.getElementById("settingProgressAttri
 const settingUnloadHandler = document.getElementById("settingUnloadHandler") as HTMLInputElement ?? fail();
 const settingBoostVelocity = document.getElementById("settingBoostVelocity") as HTMLInputElement ?? fail();
 const settingBidirectionalBack = document.getElementById("settingBidirectionalBack") as HTMLInputElement ?? fail();
-const settingBidirectionalBackParallax = document.getElementById("settingBidirectionalBackParallax") as HTMLInputElement ?? fail();
+const settingParallax = document.getElementById("settingParallax") as HTMLInputElement ?? fail();
 const settingTargetStop = document.getElementById("settingTargetStop") as HTMLInputElement ?? fail();
 const settingFadeForeground = document.getElementById("settingFadeForeground") as HTMLInputElement ?? fail();
 const settingWobble = document.getElementById("settingWobble") as HTMLInputElement ?? fail();
@@ -76,6 +76,13 @@ let loadStartTime = 0;
 
 let bucket_name = ["P25", "P50", "P75", "P90", "P95", "P99"];
 let bucket = [30, 100, 330, 660, 1000, 2360];
+
+function getParallaxFactor(): number {
+  if (!!settingParallax.checked)
+    return 0.25;
+
+  return 0;
+}
 
 
 function formatPercentile(ms: number): string {
@@ -109,7 +116,21 @@ function mirrorIfNeededNum(value: number): number {
   return value;
 }
 
+function handleParallax(result: AdvanceResult) {
+  if (!!settingParallax.checked)
+    return result;
+  
+  return {
+            done: result.done,
+            fgOffset: result.fgOffset,
+            bgOffset: 0,
+            hasCommitted: result.hasCommitted
+        }
+}
+
 function mirrorIfNeeded(result: AdvanceResult): AdvanceResult {           
+  result = handleParallax(result);
+
   if (!rightToLeft)
     return result;
 
@@ -117,15 +138,11 @@ function mirrorIfNeeded(result: AdvanceResult): AdvanceResult {
   let bgOffset;
   if (!!settingBidirectionalBack.checked) {
     fgOffset = -result.fgOffset;
-    if (!!settingBidirectionalBackParallax.checked) {
-      bgOffset = Math.abs(result.bgOffset);
-    } else {
-      bgOffset = 0;
-    }
+    bgOffset = Math.abs(result.bgOffset); 
   } else {
     const width = document.documentElement.getBoundingClientRect().width;
     fgOffset = Math.abs(result.fgOffset - width);
-    bgOffset = -(result.bgOffset + (0.25 * width)); 
+    bgOffset = -(result.bgOffset + (getParallaxFactor() * width)); 
   }
 
   return {
@@ -434,7 +451,7 @@ function handlePointerUp(e: PointerEvent) {
     let currentScrim = document.documentElement.style.getPropertyValue("--scrim"); 
 
     let endFgOffset = 0;
-    let endBgOffset = -0.25 * document.documentElement.getBoundingClientRect().width;
+    let endBgOffset = -getParallaxFactor() * document.documentElement.getBoundingClientRect().width;
     let endScrim = 0.8;
     if (rightToLeft) {
       endFgOffset = document.documentElement.getBoundingClientRect().width;
